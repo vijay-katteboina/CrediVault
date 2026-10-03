@@ -7,6 +7,16 @@ public class CredentialResponse {
 
     private Long credentialId;
     private String credentialCode;
+
+    private Long studentId;
+    private String studentNumber;
+    private String course;
+    private String academicYear;
+
+    private Long institutionId;
+    private String institutionName;
+    private String institutionCode;
+
     private String credentialType;
     private Map<String, Object> credentialData;
     private String dataHash;
@@ -32,6 +42,62 @@ public class CredentialResponse {
 
     public void setCredentialCode(String credentialCode) {
         this.credentialCode = credentialCode;
+    }
+
+    public Long getStudentId() {
+        return studentId;
+    }
+
+    public void setStudentId(Long studentId) {
+        this.studentId = studentId;
+    }
+
+    public String getStudentNumber() {
+        return studentNumber;
+    }
+
+    public void setStudentNumber(String studentNumber) {
+        this.studentNumber = studentNumber;
+    }
+
+    public String getCourse() {
+        return course;
+    }
+
+    public void setCourse(String course) {
+        this.course = course;
+    }
+
+    public String getAcademicYear() {
+        return academicYear;
+    }
+
+    public void setAcademicYear(String academicYear) {
+        this.academicYear = academicYear;
+    }
+
+    public Long getInstitutionId() {
+        return institutionId;
+    }
+
+    public void setInstitutionId(Long institutionId) {
+        this.institutionId = institutionId;
+    }
+
+    public String getInstitutionName() {
+        return institutionName;
+    }
+
+    public void setInstitutionName(String institutionName) {
+        this.institutionName = institutionName;
+    }
+
+    public String getInstitutionCode() {
+        return institutionCode;
+    }
+
+    public void setInstitutionCode(String institutionCode) {
+        this.institutionCode = institutionCode;
     }
 
     public String getCredentialType() {
@@ -83,8 +149,8 @@ public class CredentialResponse {
     }
 
     public LocalDateTime getUpdatedAt() {
-    return updatedAt;
-}
+        return updatedAt;
+    }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
