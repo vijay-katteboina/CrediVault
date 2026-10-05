@@ -2,6 +2,7 @@ package com.credivault.controller;
 
 import com.credivault.dto.AuthResponse;
 import com.credivault.dto.LoginRequest;
+import com.credivault.dto.RegisterRequest;
 import com.credivault.dto.UserProfileResponse;
 import com.credivault.entity.User;
 import com.credivault.service.JwtService;
@@ -37,6 +38,30 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
+    /**
+     * Register a new student account.
+     */
+    @PostMapping("/register")
+    public ResponseEntity<UserProfileResponse> register(
+            @Valid @RequestBody RegisterRequest request) {
+
+        User user = userService.registerUser(request);
+
+        UserProfileResponse response =
+                new UserProfileResponse(
+                        user.getUserId(),
+                        user.getFullName(),
+                        user.getEmail(),
+                        user.getRole(),
+                        user.getAccountStatus()
+                );
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Authenticate an existing user and return a JWT.
+     */
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
             @Valid @RequestBody LoginRequest request) {
@@ -68,6 +93,9 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Return the currently authenticated user's safe profile.
+     */
     @GetMapping("/me")
     public ResponseEntity<UserProfileResponse> getCurrentUser(
             Authentication authentication) {

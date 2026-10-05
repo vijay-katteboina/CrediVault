@@ -41,18 +41,16 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(authorize -> authorize
 
-                        // Public endpoints
                         .requestMatchers(
                                 "/api/v1/health",
                                 "/api/v1/auth/login",
+                                "/api/v1/auth/register",
                                 "/error"
                         ).permitAll()
 
-                        // Protected endpoint
                         .requestMatchers("/api/v1/auth/me")
                         .authenticated()
 
-                        // Everything else requires authentication
                         .anyRequest()
                         .authenticated()
                 )
@@ -63,12 +61,6 @@ public class SecurityConfig {
                 );
 
         return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-
-        return new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder();
     }
 
     @Bean
