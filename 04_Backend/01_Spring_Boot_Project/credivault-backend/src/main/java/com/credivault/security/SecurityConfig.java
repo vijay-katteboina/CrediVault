@@ -40,12 +40,21 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(authorize -> authorize
+
+                        // Public endpoints
                         .requestMatchers(
                                 "/api/v1/health",
-                                "/api/v1/auth/**",
+                                "/api/v1/auth/login",
                                 "/error"
                         ).permitAll()
-                        .anyRequest().authenticated()
+
+                        // Protected endpoint
+                        .requestMatchers("/api/v1/auth/me")
+                        .authenticated()
+
+                        // Everything else requires authentication
+                        .anyRequest()
+                        .authenticated()
                 )
 
                 .addFilterBefore(

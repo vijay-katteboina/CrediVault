@@ -2,6 +2,7 @@ package com.credivault.controller;
 
 import com.credivault.dto.AuthResponse;
 import com.credivault.dto.LoginRequest;
+import com.credivault.dto.UserProfileResponse;
 import com.credivault.entity.User;
 import com.credivault.service.JwtService;
 import com.credivault.service.UserService;
@@ -11,6 +12,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,7 +50,9 @@ public class AuthController {
 
         User user = userService.findByEmail(request.getEmail())
                 .orElseThrow(() ->
-                        new IllegalStateException("Authenticated user not found")
+                        new IllegalStateException(
+                                "Authenticated user not found"
+                        )
                 );
 
         String token = jwtService.generateToken(
@@ -59,6 +64,31 @@ public class AuthController {
                 token,
                 user.getRole()
         );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileResponse> getCurrentUser(
+            Authentication authentication) {
+
+        String email = authentication.getName();
+
+        User user = userService.findByEmail(email)
+                .orElseThrow(() ->
+                        new IllegalStateException(
+                                "Authenticated user not found"
+                        )
+                );
+
+        UserProfileResponse response =
+                new UserProfileResponse(
+                        user.getUserId(),
+                        user.getFullName(),
+                        user.getEmail(),
+                        user.getRole(),
+                        user.getAccountStatus()
+                );
 
         return ResponseEntity.ok(response);
     }
