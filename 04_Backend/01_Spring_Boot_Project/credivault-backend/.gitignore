@@ -31,3 +31,13 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local development secrets and test data
+issuer-*-key.txt
+*-login.json
+*-register.json
+credential.json
+verification.json
+credential-*.json
+verification-*.json
+revoke-*.json
