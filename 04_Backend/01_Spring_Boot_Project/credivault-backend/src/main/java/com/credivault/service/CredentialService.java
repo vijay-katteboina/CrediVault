@@ -1,5 +1,7 @@
 package com.credivault.service;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import com.credivault.dto.CredentialRequest;
 import com.credivault.dto.CredentialResponse;
 import com.credivault.entity.Credential;
@@ -17,6 +19,7 @@ import tools.jackson.databind.SerializationFeature;
 
 import java.time.LocalDateTime;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -62,6 +65,9 @@ public class CredentialService {
     /**
      * Issues a new academic credential.
      *
+     * Only an active issuer assigned to the student's
+     * institution can issue that student's credential.
+     *
      * @param request credential information
      * @param issuerEmail authenticated issuer email
      * @return saved credential response
@@ -71,7 +77,7 @@ public class CredentialService {
             CredentialRequest request,
             String issuerEmail) {
 
-        // 1. Find authenticated issuer.
+        // 1. Find the authenticated issuer.
         User issuer = userService
                 .findByEmail(issuerEmail)
                 .orElseThrow(() ->
@@ -80,14 +86,14 @@ public class CredentialService {
                         )
                 );
 
-        // 2. Verify issuer role.
+        // 2. Verify the issuer's role.
         if (!"ISSUER".equalsIgnoreCase(issuer.getRole())) {
             throw new IllegalStateException(
                     "Only ISSUER users can issue credentials"
             );
         }
 
-        // 3. Verify issuer account status.
+        // 3. Verify that the issuer account is active.
         if (!"ACTIVE".equalsIgnoreCase(
                 issuer.getAccountStatus())) {
 
@@ -96,7 +102,26 @@ public class CredentialService {
             );
         }
 
-        // 4. Find student.
+        // 4. Find the institution assigned to the issuer.
+        Institution issuerInstitution =
+                issuer.getInstitution();
+
+        if (issuerInstitution == null) {
+            throw new IllegalStateException(
+                    "Issuer is not associated with an institution"
+            );
+        }
+
+        // 5. Verify that the issuer's institution is active.
+        if (!"ACTIVE".equalsIgnoreCase(
+                issuerInstitution.getStatus())) {
+
+            throw new IllegalStateException(
+                    "Issuer's institution is not active"
+            );
+        }
+
+        // 6. Find the requested student.
         Student student = studentRepository
                 .findById(request.getStudentId())
                 .orElseThrow(() ->
@@ -106,19 +131,32 @@ public class CredentialService {
                         )
                 );
 
-        // 5. Get institution associated with the student.
-        Institution institution =
+        // 7. Get the institution associated with the student.
+        Institution studentInstitution =
                 student.getInstitution();
 
-        if (institution == null) {
+        if (studentInstitution == null) {
             throw new IllegalStateException(
                     "Student is not associated with an institution"
             );
         }
 
-        // 6. Verify institution is active.
+        // 8. Enforce institution-level authorization.
+        // The issuer and student must belong to the same institution.
+        if (!Objects.equals(
+        issuerInstitution.getInstitutionId(),
+        studentInstitution.getInstitutionId())) {
+
+    throw new ResponseStatusException(
+            HttpStatus.FORBIDDEN,
+            "Issuer is not authorized to issue credentials "
+                    + "for this student's institution"
+    );
+}
+
+        // 9. Verify that the student's institution is active.
         if (!"ACTIVE".equalsIgnoreCase(
-                institution.getStatus())) {
+                studentInstitution.getStatus())) {
 
             throw new IllegalStateException(
                     "Institution is not active"
@@ -126,10 +164,10 @@ public class CredentialService {
         }
 
         /*
-         * 7. Create deterministic JSON.
+         * 10. Create deterministic JSON.
          *
-         * Jackson 3 supports per-call serialization features
-         * through ObjectMapper.writer(...).
+         * Sort map entries to ensure that equivalent credential
+         * data produces a consistent representation.
          */
         String canonicalData;
 
@@ -152,15 +190,15 @@ public class CredentialService {
             );
         }
 
-        // 8. Generate SHA-256 integrity hash.
+        // 11. Generate the SHA-256 integrity hash.
         String dataHash =
                 hashService.sha256(canonicalData);
 
-        // 9. Digitally sign the hash.
+        // 12. Digitally sign the hash.
         String digitalSignature =
                 digitalSignatureService.sign(dataHash);
 
-        // 10. Generate unique credential code.
+        // 13. Generate a unique credential code.
         String credentialCode =
                 "CV-"
                         + UUID.randomUUID()
@@ -169,7 +207,7 @@ public class CredentialService {
                         .substring(0, 16)
                         .toUpperCase(Locale.ROOT);
 
-        // 11. Create credential entity.
+        // 14. Create the credential entity.
         LocalDateTime now =
                 LocalDateTime.now();
 
@@ -185,7 +223,7 @@ public class CredentialService {
         );
 
         credential.setInstitution(
-                institution
+                studentInstitution
         );
 
         credential.setCredentialType(
@@ -216,13 +254,13 @@ public class CredentialService {
                 now
         );
 
-        // 12. Save credential.
+        // 15. Save the credential.
         Credential savedCredential =
                 credentialRepository.save(
                         credential
                 );
 
-        // 13. Record audit event.
+        // 16. Record the audit event.
         auditService.record(
                 issuer,
                 "ISSUE_CREDENTIAL",
@@ -236,12 +274,12 @@ public class CredentialService {
                         + student.getStudentNumber()
         );
 
-        // 14. Return response DTO.
+        // 17. Return the response DTO.
         return toResponse(savedCredential);
     }
 
     /**
-     * Converts Credential entity to CredentialResponse.
+     * Converts a Credential entity to CredentialResponse.
      */
     private CredentialResponse toResponse(
             Credential credential) {

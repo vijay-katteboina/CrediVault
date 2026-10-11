@@ -51,3 +51,7 @@ Thumbs.db
 # =========================
 *.sql.bak
 *.dump
+
+# Local test artifacts and diagnostic files
+*-credential.json
+startup-error.txt
