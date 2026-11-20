@@ -1,187 +1,308 @@
-.student-page {
-  min-height: 100vh;
-  padding: 40px;
-  background: #f5f7fb;
-}
-
-.dashboard-header {
-  max-width: 1200px;
-  margin: 0 auto 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-}
-
-.dashboard-label,
-.card-label {
-  margin: 0 0 8px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  color: #64748b;
-}
-
-.dashboard-header h1 {
-  margin: 0;
-  font-size: 36px;
-  color: #111827;
-}
-
-.dashboard-subtitle {
-  margin-top: 8px;
-  color: #64748b;
-}
-
-.logout-button,
-.welcome-card button {
-  border: none;
-  border-radius: 10px;
-  padding: 11px 18px;
-  background: #111827;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.welcome-card {
-  max-width: 1200px;
-  margin: 0 auto 24px;
-  padding: 28px;
-  border-radius: 18px;
-  background: white;
-  border: 1px solid #e5e7eb;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-}
-
-.welcome-card h2 {
-  margin: 0 0 10px;
-  font-size: 28px;
-  color: #111827;
-}
-
-.welcome-card p:not(.card-label) {
-  margin: 0;
-  max-width: 700px;
-  color: #64748b;
-  line-height: 1.6;
-}
-
-.status-badge {
-  padding: 8px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 700;
-  background: #dcfce7;
-  color: #166534;
-}
-
-.profile-grid {
-  max-width: 1200px;
-  margin: 0 auto 30px;
+.student-dashboard-content {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 18px;
+  gap: 22px;
+  min-width: 0;
 }
 
-.info-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 22px;
+.student-welcome-panel,
+.student-details-panel,
+.student-quick-actions,
+.student-stat-card,
+.student-state-card {
+  background: #ffffff;
+  border: 1px solid #e1e8f1;
+  border-radius: 15px;
+  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.035);
 }
 
-.info-label {
-  display: block;
-  margin-bottom: 10px;
-  font-size: 13px;
-  color: #64748b;
-}
-
-.info-card strong {
-  color: #111827;
-  word-break: break-word;
-}
-
-.quick-section {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.section-heading h2 {
-  margin: 0 0 18px;
-  color: #111827;
-}
-
-.action-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 18px;
-}
-
-.action-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  padding: 22px;
-  background: white;
+.student-welcome-panel {
   display: flex;
   align-items: center;
-  gap: 16px;
-  text-align: left;
-  cursor: pointer;
+  gap: 18px;
+  padding: 25px;
 }
 
-.action-card:hover {
-  border-color: #cbd5e1;
-  transform: translateY(-1px);
-}
-
-.action-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+.student-welcome-avatar {
   display: grid;
   place-items: center;
-  background: #eef2ff;
+  width: 58px;
+  height: 58px;
+  flex: 0 0 58px;
+  border-radius: 15px;
+  background: #e8edff;
+  color: #3730a3;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.student-welcome-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.student-eyebrow {
+  margin: 0 0 8px;
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.35px;
+}
+
+.student-welcome-copy h2,
+.student-panel-heading h2 {
+  margin: 0;
+  color: #172033;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.student-welcome-copy > p:last-child {
+  max-width: 680px;
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.student-account-badge,
+.student-role-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #166534;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.student-account-badge.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.student-account-badge.unknown {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.student-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.student-stat-card {
+  min-width: 0;
+  padding: 21px;
+}
+
+.student-stat-card > span,
+.student-stat-card > small {
+  display: block;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.student-stat-card > strong {
+  display: block;
+  margin: 12px 0 7px;
+  color: #111827;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.student-stat-card > small {
+  font-size: 11px;
+}
+
+.student-details-panel,
+.student-quick-actions {
+  padding: 23px;
+}
+
+.student-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.student-role-chip {
+  background: #e8edff;
+  color: #3730a3;
+}
+
+.student-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+  border-top: 1px solid #edf1f6;
+}
+
+.student-profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  padding: 16px 0;
+  border-bottom: 1px solid #edf1f6;
+}
+
+.student-profile-field span {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.student-profile-field strong {
+  color: #1e293b;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.student-open-wallet-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  width: 100%;
+  padding: 17px;
+  border: 1px solid #e0e7ff;
+  border-radius: 12px;
+  background: #f8faff;
+  color: #172033;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.student-open-wallet-card:hover {
+  transform: translateY(-1px);
+  border-color: #a5b4fc;
+  box-shadow: 0 8px 20px rgba(55, 48, 163, 0.08);
+}
+
+.student-action-icon {
+  display: grid;
+  place-items: center;
+  width: 43px;
+  height: 43px;
+  flex: 0 0 43px;
+  border-radius: 11px;
+  background: #e8edff;
+  color: #3730a3;
+  font-size: 21px;
+}
+
+.student-action-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.student-action-copy strong {
+  color: #1e293b;
+  font-size: 13px;
+}
+
+.student-action-copy small {
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.student-action-arrow {
+  color: #3730a3;
   font-size: 22px;
 }
 
-.action-card strong,
-.action-card small {
-  display: block;
+.student-inline-notice {
+  padding: 12px 15px;
+  border: 1px solid #bfdbfe;
+  border-radius: 9px;
+  background: #eff6ff;
+  color: #1e40af;
+  font-size: 12px;
 }
 
-.action-card strong {
-  margin-bottom: 5px;
-  color: #111827;
+.student-state-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 55px 25px;
+  text-align: center;
 }
 
-.action-card small {
+.student-state-card p {
+  margin: 0;
   color: #64748b;
+  font-size: 13px;
 }
 
-@media (max-width: 900px) {
-  .profile-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.student-error-card h2 {
+  margin: 0;
+  color: #172033;
+  font-size: 20px;
 }
 
-@media (max-width: 650px) {
-  .student-page {
-    padding: 20px;
+.student-error-card button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #111827;
+  color: #ffffff;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.student-loading-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #3730a3;
+  border-radius: 50%;
+  animation: student-spin 0.8s linear infinite;
+}
+
+@keyframes student-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 760px) {
+  .student-welcome-panel {
+    align-items: flex-start;
+    flex-wrap: wrap;
   }
 
-  .dashboard-header,
-  .welcome-card {
-    flex-direction: column;
-    align-items: stretch;
+  .student-account-badge {
+    margin-left: 76px;
   }
 
-  .profile-grid,
-  .action-grid {
+  .student-stat-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .student-welcome-panel,
+  .student-details-panel,
+  .student-quick-actions {
+    padding: 17px;
+  }
+
+  .student-profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .student-welcome-copy h2,
+  .student-panel-heading h2 {
+    font-size: 18px;
   }
 }

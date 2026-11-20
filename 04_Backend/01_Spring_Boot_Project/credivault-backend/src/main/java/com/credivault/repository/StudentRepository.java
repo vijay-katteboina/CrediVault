@@ -16,4 +16,6 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     findByInstitution_InstitutionIdOrderByUser_FullNameAsc(
             Long institutionId
     );
+
+    long countByInstitution_InstitutionId(Long institutionId);
 }

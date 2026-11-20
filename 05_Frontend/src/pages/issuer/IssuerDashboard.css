@@ -464,3 +464,153 @@
     grid-column: auto;
   }
 }
+
+/* =========================================
+   CREDENTIAL REVOCATION
+========================================= */
+
+.revocation-form-card {
+  margin-top: 30px;
+  border-color: #fecaca;
+}
+
+.revocation-form-card .issuer-card-heading {
+  border-bottom-color: #fee2e2;
+}
+
+.issuer-form-group textarea {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  min-height: 110px;
+  padding: 12px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.issuer-form-group textarea:focus {
+  border-color: #64748b;
+  outline: 3px solid #e2e8f0;
+}
+
+.issuer-revoke-button {
+  min-height: 45px;
+  padding: 12px 18px;
+  border: 1px solid #991b1b;
+  border-radius: 10px;
+  background: #991b1b;
+  color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.issuer-revoke-button:hover:not(:disabled) {
+  background: #7f1d1d;
+}
+
+.issuer-revoke-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.revocation-result-card {
+  margin-top: 28px;
+  padding: 28px;
+  border: 1px solid #fecaca;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.revocation-result-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #fee2e2;
+}
+
+.revocation-success-icon {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.revocation-result-header > div:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+
+.revocation-result-header h2 {
+  margin: 0;
+  font-size: 21px;
+}
+
+.revocation-result-header p:last-child {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.revocation-status {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.revocation-result-card .issued-details-grid {
+  margin-top: 24px;
+}
+
+@media (max-width: 700px) {
+  .revocation-form-card {
+    padding: 20px;
+  }
+
+  .revocation-result-card {
+    padding: 20px;
+  }
+
+  .revocation-result-header {
+    flex-wrap: wrap;
+  }
+
+  .revocation-status {
+    margin-left: 72px;
+  }
+}
+/* =========================================
+   IMPROVED STUDENT DROPDOWN READABILITY
+========================================= */
+
+.issuer-form-group select {
+  min-height: 50px;
+  padding: 12px 14px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.issuer-form-group select option {
+  font-size: 40px;
+  padding: 10px 12px;
+}

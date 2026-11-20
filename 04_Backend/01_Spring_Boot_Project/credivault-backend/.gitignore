@@ -41,3 +41,6 @@ verification.json
 credential-*.json
 verification-*.json
 revoke-*.json
+
+# Local configuration backups
+*.backup

@@ -1,0 +1,3 @@
+Label,# Samples,Average,Min,Max,Std. Dev.,Error %,Throughput,Received KB/sec,Sent KB/sec,Avg. Bytes
+Health Check,20,20,13,71,14.34,0.000%,.49192,0.21,0.09,442.0
+TOTAL,20,20,13,71,14.34,0.000%,.49192,0.21,0.09,442.0

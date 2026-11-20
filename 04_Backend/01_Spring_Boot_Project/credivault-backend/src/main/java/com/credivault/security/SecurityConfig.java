@@ -1,5 +1,6 @@
 package com.credivault.security;
 
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,6 +23,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -66,6 +68,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/auth/me")
                         .authenticated()
 
+                        // Administrator-only APIs
+                        .requestMatchers("/api/v1/admin/**")
+                        .hasRole("ADMIN")
+
                         // Issuer-only APIs
                         .requestMatchers("/api/v1/issuer/**")
                         .hasRole("ISSUER")
@@ -76,6 +82,16 @@ public class SecurityConfig {
 
                         .requestMatchers("/api/v1/verifier/**")
                         .hasRole("VERIFIER")
+
+                        // Issuer-only APIs
+                        .requestMatchers("/api/v1/issuer/**")
+                        .hasRole("ISSUER")
+
+                        .requestMatchers(
+                                "/api/v1/revocation",
+                                "/api/v1/revocation/**"
+                        )
+                        .hasRole("ISSUER")
 
                         // Everything else requires authentication
                         .anyRequest()
@@ -100,14 +116,15 @@ public class SecurityConfig {
         );
 
         configuration.setAllowedMethods(
-                List.of(
-                        "GET",
-                        "POST",
-                        "PUT",
-                        "DELETE",
-                        "OPTIONS"
-                )
-        );
+        List.of(
+                "GET",
+                "POST",
+                "PUT",
+                "PATCH",
+                "DELETE",
+                "OPTIONS"
+        )
+                );
 
         configuration.setAllowedHeaders(
                 List.of(

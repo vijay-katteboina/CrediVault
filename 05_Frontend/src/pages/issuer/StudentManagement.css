@@ -1,0 +1,484 @@
+/* =========================================
+   STUDENT MANAGEMENT
+========================================= */
+
+.student-management-section {
+  margin-bottom: 32px;
+  color: #111827;
+}
+
+.sm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+  margin: 34px 0 22px;
+}
+
+.sm-header h2 {
+  margin: 0;
+  font-size: 26px;
+}
+
+.sm-header > div > p:last-child {
+  margin: 9px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.sm-refresh-button,
+.sm-close-button {
+  padding: 11px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sm-refresh-button:hover:not(:disabled),
+.sm-close-button:hover {
+  background: #f8fafc;
+}
+
+.sm-refresh-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Statistics */
+
+.sm-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.sm-stat-card {
+  padding: 20px 22px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.sm-stat-card span {
+  display: block;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.sm-stat-card strong {
+  display: block;
+  margin-top: 12px;
+  color: #111827;
+  font-size: 29px;
+}
+
+/* Panels */
+
+.sm-panel {
+  padding: 26px;
+  margin-bottom: 22px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.025);
+}
+
+.sm-panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.sm-panel-heading h3 {
+  margin: 0;
+  font-size: 21px;
+}
+
+.sm-panel-heading > div > p:last-child {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* Registration and update forms */
+
+.sm-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.sm-field {
+  min-width: 0;
+}
+
+.sm-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sm-field input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-size: 13px;
+}
+
+.sm-field input:focus,
+.sm-search input:focus {
+  border-color: #64748b;
+  outline: 3px solid #e2e8f0;
+}
+
+.sm-form-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.sm-primary-button,
+.sm-secondary-button {
+  min-height: 44px;
+  padding: 11px 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sm-primary-button {
+  border-color: #111827;
+  background: #111827;
+  color: #ffffff;
+}
+
+.sm-primary-button:hover:not(:disabled) {
+  background: #1f2937;
+}
+
+.sm-secondary-button {
+  background: #ffffff;
+  color: #111827;
+}
+
+.sm-secondary-button:hover:not(:disabled) {
+  background: #f8fafc;
+}
+
+.sm-primary-button:disabled,
+.sm-secondary-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.sm-security-note {
+  margin: 18px 0 0;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* Messages */
+
+.sm-error,
+.sm-success {
+  padding: 13px 15px;
+  margin-bottom: 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.sm-error {
+  border: 1px solid #fecaca;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.sm-success {
+  border: 1px solid #bbf7d0;
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* Student list */
+
+.sm-list-heading {
+  margin-bottom: 18px;
+}
+
+.sm-count {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sm-search {
+  margin-bottom: 18px;
+}
+
+.sm-search input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 13px;
+}
+
+.sm-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.sm-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.sm-table th {
+  padding: 14px 12px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.sm-table td {
+  padding: 17px 12px;
+  border-bottom: 1px solid #eef2f7;
+  font-size: 12px;
+  vertical-align: middle;
+}
+
+.sm-table td strong {
+  display: block;
+  color: #111827;
+  font-size: 12px;
+}
+
+.sm-email {
+  display: block;
+  margin-top: 6px;
+  color: #64748b;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.sm-student-number {
+  font-family: Consolas, monospace;
+  overflow-wrap: anywhere;
+}
+
+/* Status */
+
+.sm-status {
+  display: inline-block;
+  padding: 7px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.sm-status.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.sm-status.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.sm-status.unknown {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* Student actions */
+
+.sm-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.sm-actions button {
+  padding: 7px 9px;
+  border: 1px solid #e2e8f0;
+  border-radius: 7px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sm-view-button {
+  color: #3730a3;
+}
+
+.sm-edit-button {
+  color: #1d4ed8;
+}
+
+.sm-deactivate-button {
+  border-color: #fecaca !important;
+  background: #fff7f7 !important;
+  color: #991b1b;
+}
+
+.sm-activate-button {
+  border-color: #bbf7d0 !important;
+  background: #f0fdf4 !important;
+  color: #166534;
+}
+
+.sm-actions button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+/* Empty and loading states */
+
+.sm-empty-state {
+  padding: 36px 20px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  color: #64748b;
+  font-size: 13px;
+  text-align: center;
+}
+
+/* Student details */
+
+.sm-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.sm-details-grid > div {
+  padding: 14px;
+  border: 1px solid #eef2f7;
+  border-radius: 10px;
+  background: #f8fafc;
+  min-width: 0;
+}
+
+.sm-details-grid span {
+  display: block;
+  margin-bottom: 7px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.sm-details-grid strong {
+  color: #111827;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.sm-edit-panel {
+  border-color: #c7d2fe;
+}
+
+/* Responsive layout */
+
+@media (max-width: 750px) {
+  .sm-header {
+    flex-direction: column;
+  }
+
+  .sm-refresh-button {
+    width: 100%;
+  }
+
+  .sm-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .sm-form-grid,
+  .sm-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sm-panel {
+    padding: 20px;
+  }
+
+  .sm-form-actions {
+    grid-column: auto;
+    flex-direction: column-reverse;
+  }
+
+  .sm-primary-button,
+  .sm-secondary-button {
+    width: 100%;
+  }
+
+  .sm-table {
+    min-width: 850px;
+  }
+}
+
+
+/* =========================================
+   SECTION-BASED STUDENT MANAGEMENT
+========================================= */
+
+/* New Student: show registration only */
+
+.student-management-register .sm-header,
+.student-management-register .sm-stats,
+.student-management-register .sm-list-panel,
+.student-management-register .sm-details-panel,
+.student-management-register .sm-edit-panel {
+  display: none !important;
+}
+
+/* Institution Records: hide registration form */
+
+.student-management-records > .sm-panel:not(.sm-list-panel):not(.sm-details-panel):not(.sm-edit-panel) {
+  display: none !important;
+}
+
+/* Hide student details and edit panels in registration view */
+.student-management-register .sm-details-panel,
+.student-management-register .sm-edit-panel {
+  display: none !important;
+}

@@ -11,4 +11,6 @@ public interface CredentialRepository extends JpaRepository<Credential, Long> {
     Optional<Credential> findByCredentialCode(String credentialCode);
 
     List<Credential> findByStudentStudentId(Long studentId);
+
+    long countByInstitution_InstitutionId(Long institutionId);
 }

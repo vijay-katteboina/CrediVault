@@ -1,0 +1,24 @@
+CrediVault Issuer Management update
+
+Copy the files in this package into the matching locations under:
+D:\CrediVault\05_Frontend
+
+Files:
+- src\pages\admin\IssuerManagement.jsx        (new)
+- src\pages\admin\IssuerManagement.css       (new)
+- src\pages\admin\AdminDashboard.jsx         (replace)
+- src\pages\admin\AdminUserManagement.jsx    (replace; fixes Refresh Users)
+- src\routes\AppRouter.jsx                    (replace)
+
+Then run from D:\CrediVault\05_Frontend:
+  npm run build
+  npm run lint
+  npm run dev
+
+Issuer Management reuses the existing ADMIN endpoints:
+- GET /api/v1/admin/users?role=ISSUER
+- GET /api/v1/admin/users/{userId}
+- PUT /api/v1/admin/users/{userId}/status
+
+The institution association is deliberately read-only. This module does not create issuer accounts,
+change institution assignments, generate keys, or alter existing RSA key material.

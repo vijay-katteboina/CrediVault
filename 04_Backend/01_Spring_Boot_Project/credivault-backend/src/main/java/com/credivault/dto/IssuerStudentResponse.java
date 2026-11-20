@@ -8,6 +8,7 @@ public class IssuerStudentResponse {
     private String email;
     private String course;
     private String academicYear;
+    private String accountStatus;
 
     public IssuerStudentResponse() {
     }
@@ -18,7 +19,8 @@ public class IssuerStudentResponse {
             String fullName,
             String email,
             String course,
-            String academicYear) {
+            String academicYear,
+            String accountStatus) {
 
         this.studentId = studentId;
         this.studentNumber = studentNumber;
@@ -26,6 +28,7 @@ public class IssuerStudentResponse {
         this.email = email;
         this.course = course;
         this.academicYear = academicYear;
+        this.accountStatus = accountStatus;
     }
 
     public Long getStudentId() {
@@ -74,5 +77,13 @@ public class IssuerStudentResponse {
 
     public void setAcademicYear(String academicYear) {
         this.academicYear = academicYear;
+    }
+
+    public String getAccountStatus() {
+        return accountStatus;
+    }
+
+    public void setAccountStatus(String accountStatus) {
+        this.accountStatus = accountStatus;
     }
 }

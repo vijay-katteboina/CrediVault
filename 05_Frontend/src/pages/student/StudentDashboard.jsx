@@ -1,203 +1,266 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import RoleLayout from '../../components/layout/RoleLayout'
 import './StudentDashboard.css'
+
+const STUDENT_NAV_ITEMS = [
+  {
+    key: 'dashboard',
+    label: 'Dashboard',
+    pageTitle: 'Student Dashboard',
+    description: 'View your academic profile and credential overview.',
+    icon: '⌂',
+  },
+  {
+    key: 'wallet',
+    label: 'My Credential Wallet',
+    pageTitle: 'My Credential Wallet',
+    description: 'Access your issued academic credentials and QR presentations.',
+    icon: '▣',
+  },
+]
 
 function StudentDashboard() {
   const navigate = useNavigate()
 
   const [user, setUser] = useState(null)
+  const [wallet, setWallet] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [walletError, setWalletError] = useState('')
 
-  // Load the authenticated user's profile.
   useEffect(() => {
-    const loadProfile = async () => {
+    let cancelled = false
+
+    const loadStudentDashboard = async () => {
       const token = localStorage.getItem('credivaultToken')
+      const role = (localStorage.getItem('credivaultRole') || '').toUpperCase()
 
       if (!token) {
         navigate('/login', { replace: true })
         return
       }
 
-      try {
-        const response = await api.get('/auth/me')
-        setUser(response.data)
-      } catch (err) {
-        if (err.response?.status === 401) {
-          localStorage.removeItem('credivaultToken')
-          localStorage.removeItem('credivaultRole')
+      if (role !== 'STUDENT') {
+        const roleRoutes = {
+          ADMIN: '/admin',
+          ISSUER: '/issuer',
+          VERIFIER: '/verifier',
+        }
+        navigate(roleRoutes[role] || '/login', { replace: true })
+        return
+      }
 
-          navigate('/login', { replace: true })
-          return
+      try {
+        const [profileResult, walletResult] = await Promise.allSettled([
+          api.get('/auth/me'),
+          api.get('/student/wallet'),
+        ])
+
+        if (cancelled) return
+
+        if (profileResult.status === 'rejected') {
+          const status = profileResult.reason?.response?.status
+          if (status === 401) {
+            localStorage.removeItem('credivaultToken')
+            localStorage.removeItem('credivaultRole')
+            navigate('/login', { replace: true })
+            return
+          }
+          throw profileResult.reason
         }
 
-        setError(
-          err.response?.data?.message ||
-          'Unable to load your profile. Please try again.'
-        )
+        setUser(profileResult.value.data)
+
+        if (walletResult.status === 'fulfilled') {
+          setWallet(walletResult.value.data)
+        } else {
+          const walletStatus = walletResult.reason?.response?.status
+          if (walletStatus === 401) {
+            localStorage.removeItem('credivaultToken')
+            localStorage.removeItem('credivaultRole')
+            navigate('/login', { replace: true })
+            return
+          }
+          setWalletError(
+            walletResult.reason?.response?.data?.message ||
+              'Credential statistics are temporarily unavailable. You can still view your profile.',
+          )
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err.response?.data?.message ||
+              'Unable to load your student profile. Please try again.',
+          )
+        }
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
 
-    loadProfile()
+    void loadStudentDashboard()
+
+    return () => {
+      cancelled = true
+    }
   }, [navigate])
 
-  // Log out the current user.
   const handleLogout = () => {
     localStorage.removeItem('credivaultToken')
     localStorage.removeItem('credivaultRole')
-
     navigate('/login', { replace: true })
   }
 
-  // Navigate to the Student Wallet.
-  const handleOpenWallet = () => {
-    navigate('/student/wallet')
+  const handleNavigate = (key) => {
+    if (key === 'wallet') navigate('/student/wallet')
+    else navigate('/student')
   }
 
-  // Display a loading state while fetching the profile.
-  if (loading) {
-    return (
-      <main className="student-page">
-        <section className="dashboard-card">
-          <p>Loading your dashboard...</p>
-        </section>
-      </main>
-    )
-  }
+  const credentials = wallet?.credentials ?? []
+  const activeCount = credentials.filter(
+    (credential) => String(credential.status || '').toUpperCase() === 'ACTIVE',
+  ).length
+  const revokedCount = credentials.filter(
+    (credential) => String(credential.status || '').toUpperCase() === 'REVOKED',
+  ).length
 
-  // Display an error if the profile cannot be loaded.
-  if (error) {
-    return (
-      <main className="student-page">
-        <section className="dashboard-card">
-          <h1>Unable to Load Dashboard</h1>
-          <p>{error}</p>
-
-          <button
-            type="button"
-            onClick={() => window.location.reload()}
-          >
-            Try Again
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate('/login', { replace: true })}
-          >
-            Go to Login
-          </button>
-        </section>
-      </main>
-    )
+  const studentProfile = {
+    fullName: wallet?.fullName || user?.fullName,
+    email: wallet?.email || user?.email,
+    role: user?.role || 'STUDENT',
+    accountStatus: user?.accountStatus,
+    institutionName: wallet?.institutionName || user?.institutionName,
   }
 
   return (
-    <main className="student-page">
-      {/* Dashboard Header */}
-      <header className="dashboard-header">
-        <div>
-          <p className="dashboard-label">CrediVault</p>
-
-          <h1>Student Dashboard</h1>
-
-          <p className="dashboard-subtitle">
-            Welcome back, {user?.fullName}
-          </p>
+    <RoleLayout
+      role="STUDENT"
+      navItems={STUDENT_NAV_ITEMS}
+      activeKey="dashboard"
+      onNavigate={handleNavigate}
+      onLogout={handleLogout}
+      profile={studentProfile}
+      profileLoading={loading}
+    >
+      {loading ? (
+        <div className="student-state-card" role="status">
+          <div className="student-loading-spinner" />
+          <p>Loading your student dashboard...</p>
         </div>
-
-        <button
-          type="button"
-          className="logout-button"
-          onClick={handleLogout}
-        >
-          Logout
-        </button>
-      </header>
-
-      {/* Welcome Card */}
-      <section className="welcome-card">
-        <div>
-          <p className="card-label">WELCOME</p>
-
-          <h2>{user?.fullName}</h2>
-
-          <p>
-            Manage and access your academic credentials securely through
-            CrediVault.
-          </p>
-        </div>
-
-        <div className="status-badge">
-          {user?.accountStatus}
-        </div>
-      </section>
-
-      {/* Student Profile */}
-      <section className="profile-grid">
-        <article className="info-card">
-          <span className="info-label">Full Name</span>
-          <strong>{user?.fullName}</strong>
-        </article>
-
-        <article className="info-card">
-          <span className="info-label">Email</span>
-          <strong>{user?.email}</strong>
-        </article>
-
-        <article className="info-card">
-          <span className="info-label">Role</span>
-          <strong>{user?.role}</strong>
-        </article>
-
-        <article className="info-card">
-          <span className="info-label">Account Status</span>
-          <strong>{user?.accountStatus}</strong>
-        </article>
-      </section>
-
-      {/* Quick Actions */}
-      <section className="quick-section">
-        <div className="section-heading">
-          <p className="card-label">QUICK ACTIONS</p>
-
-          <h2>Your Academic Credentials</h2>
-        </div>
-
-        <div className="action-grid">
-          {/* My Wallet */}
-          <button
-            type="button"
-            className="action-card"
-            onClick={handleOpenWallet}
-          >
-            <span className="action-icon">🎓</span>
-
-            <span>
-              <strong>My Wallet</strong>
-              <small>View your academic credentials</small>
-            </span>
+      ) : error ? (
+        <section className="student-state-card student-error-card" role="alert">
+          <h2>Unable to Load Dashboard</h2>
+          <p>{error}</p>
+          <button type="button" onClick={() => window.location.reload()}>
+            Try Again
           </button>
-
-          {/* Verification History - Coming in a later step */}
-          <button
-            type="button"
-            className="action-card"
-            disabled
-            title="Verification History is coming soon"
-          >
-            <span className="action-icon">✓</span>
-
-            <span>
-              <strong>Verification History</strong>
-              <small>Coming soon</small>
+        </section>
+      ) : (
+        <div className="student-dashboard-content">
+          <section className="student-welcome-panel">
+            <div className="student-welcome-avatar">
+              {(user?.fullName || 'Student').trim().charAt(0).toUpperCase()}
+            </div>
+            <div className="student-welcome-copy">
+              <p className="student-eyebrow">WELCOME TO CREDIVAULT</p>
+              <h2>Hello, {user?.fullName || 'Student'}!</h2>
+              <p>
+                Your academic credentials are available in one secure place.
+                Open your wallet to view or present an issued credential.
+              </p>
+            </div>
+            <span className={`student-account-badge ${(user?.accountStatus || 'unknown').toLowerCase()}`}>
+              {user?.accountStatus || 'STATUS UNKNOWN'}
             </span>
-          </button>
+          </section>
+
+          <section className="student-stat-grid" aria-label="Credential summary">
+            <article className="student-stat-card">
+              <span>Total Credentials</span>
+              <strong>{wallet ? credentials.length : '—'}</strong>
+              <small>Credentials issued to you</small>
+            </article>
+            <article className="student-stat-card">
+              <span>Active Credentials</span>
+              <strong>{wallet ? activeCount : '—'}</strong>
+              <small>Currently valid credentials</small>
+            </article>
+            <article className="student-stat-card">
+              <span>Revoked Credentials</span>
+              <strong>{wallet ? revokedCount : '—'}</strong>
+              <small>Credentials no longer valid</small>
+            </article>
+          </section>
+
+          {walletError && (
+            <div className="student-inline-notice" role="status">
+              {walletError}
+            </div>
+          )}
+
+          <section className="student-details-panel">
+            <div className="student-panel-heading">
+              <div>
+                <p className="student-eyebrow">STUDENT INFORMATION</p>
+                <h2>My Academic Profile</h2>
+              </div>
+              <span className="student-role-chip">STUDENT</span>
+            </div>
+
+            <div className="student-profile-grid">
+              <div className="student-profile-field">
+                <span>Full Name</span>
+                <strong>{wallet?.fullName || user?.fullName || 'Not available'}</strong>
+              </div>
+              <div className="student-profile-field">
+                <span>Email Address</span>
+                <strong>{wallet?.email || user?.email || 'Not available'}</strong>
+              </div>
+              <div className="student-profile-field">
+                <span>Student Number</span>
+                <strong>{wallet?.studentNumber || 'Not available'}</strong>
+              </div>
+              <div className="student-profile-field">
+                <span>Course</span>
+                <strong>{wallet?.course || 'Not available'}</strong>
+              </div>
+              <div className="student-profile-field">
+                <span>Academic Year</span>
+                <strong>{wallet?.academicYear || 'Not available'}</strong>
+              </div>
+              <div className="student-profile-field">
+                <span>Institution</span>
+                <strong>{wallet?.institutionName || 'Not available'}</strong>
+              </div>
+            </div>
+          </section>
+
+          <section className="student-quick-actions">
+            <div className="student-panel-heading">
+              <div>
+                <p className="student-eyebrow">QUICK ACCESS</p>
+                <h2>Your Credentials</h2>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="student-open-wallet-card"
+              onClick={() => navigate('/student/wallet')}
+            >
+              <span className="student-action-icon">▣</span>
+              <span className="student-action-copy">
+                <strong>My Credential Wallet</strong>
+                <small>View credential details and display your verification QR codes.</small>
+              </span>
+              <span className="student-action-arrow">→</span>
+            </button>
+          </section>
         </div>
-      </section>
-    </main>
+      )}
+    </RoleLayout>
   )
 }
 

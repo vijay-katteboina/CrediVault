@@ -1,0 +1,526 @@
+.admin-issuers-page {
+  min-height: 100vh;
+  padding: 38px 28px;
+  background: #f4f7fb;
+  color: #111827;
+}
+
+.admin-issuers-container {
+  width: 100%;
+  max-width: 1450px;
+  margin: 0 auto;
+}
+
+.admin-issuers-header,
+.admin-issuers-header-actions,
+.admin-issuers-heading,
+.issuers-table-heading,
+.issuers-pagination,
+.issuers-details-modal header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.admin-issuers-header {
+  margin-bottom: 45px;
+}
+
+.admin-issuers-brand {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.admin-issuers-role {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 11px;
+  border-radius: 20px;
+  background: #e0e7ff;
+  color: #3730a3;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.admin-issuers-header-actions {
+  gap: 12px;
+}
+
+.admin-issuers-header-actions button,
+.issuers-secondary-button {
+  padding: 13px 19px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.issuers-secondary-button {
+  background: white;
+  color: #111827;
+}
+
+.issuers-logout-button {
+  background: #111827;
+  color: white;
+}
+
+.admin-issuers-heading {
+  gap: 20px;
+  margin-bottom: 35px;
+}
+
+.admin-issuers-heading h1 {
+  margin: 9px 0;
+  font-size: 36px;
+  font-weight: 900;
+}
+
+.admin-issuers-heading p:last-child,
+.issuers-section-title p:last-child {
+  color: #64748b;
+  font-size: 15px;
+}
+
+.issuers-kicker {
+  margin: 0;
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+}
+
+.issuers-refresh-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.issuers-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.issuers-summary-card {
+  padding: 24px;
+  border: 1px solid #e2e8f0;
+  border-radius: 15px;
+  background: white;
+}
+
+.issuers-summary-card span {
+  display: block;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.issuers-summary-card strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 35px;
+  font-weight: 900;
+}
+
+.issuers-success-message,
+.issuers-error-message {
+  margin-bottom: 22px;
+  padding: 17px 20px;
+  border-radius: 11px;
+  font-size: 15px;
+}
+
+.issuers-success-message {
+  border: 1px solid #a7f3d0;
+  background: #dcfce7;
+  color: #166534;
+}
+
+.issuers-error-message {
+  border: 1px solid #fecaca;
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.issuers-filter-card,
+.issuers-table-card {
+  margin-bottom: 27px;
+  padding: 29px;
+  border: 1px solid #e2e8f0;
+  border-radius: 17px;
+  background: white;
+  box-shadow: 0 5px 20px rgba(15, 23, 42, 0.025);
+}
+
+.issuers-section-title h2,
+.issuers-table-heading h2 {
+  margin: 8px 0;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.issuers-filter-form {
+  display: grid;
+  grid-template-columns: minmax(260px, 2fr) minmax(220px, 1fr) auto;
+  align-items: end;
+  gap: 17px;
+  margin-top: 26px;
+}
+
+.issuers-filter-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.issuers-filter-group input,
+.issuers-filter-group select {
+  width: 100%;
+  height: 52px;
+  padding: 0 14px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 9px;
+  background: white;
+  color: #111827;
+  font: inherit;
+  font-size: 16px;
+}
+
+.issuers-filter-group select option {
+  font-size: 40px !important;
+  line-height: 1.5;
+  padding: 14px 12px;
+}
+
+.issuers-filter-group input:focus,
+.issuers-filter-group select:focus {
+  outline: 3px solid #c7d2fe;
+  border-color: #4338ca;
+}
+
+.issuers-filter-actions {
+  display: flex;
+  gap: 9px;
+}
+
+.issuers-filter-actions button {
+  min-height: 52px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.issuers-search-button {
+  border: none;
+  background: #3730a3;
+  color: white;
+}
+
+.issuers-clear-button {
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #111827;
+}
+
+.issuers-record-count {
+  padding: 9px 14px;
+  border-radius: 25px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.issuers-table-heading {
+  margin-bottom: 23px;
+}
+
+.issuers-table-wrapper {
+  overflow-x: auto;
+}
+
+.admin-issuers-table {
+  width: 100%;
+  min-width: 1000px;
+  border-collapse: collapse;
+}
+
+.admin-issuers-table th {
+  padding: 17px 14px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.admin-issuers-table td {
+  padding: 19px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 13px;
+}
+
+.issuers-name-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.issuers-name-cell strong {
+  font-size: 14px;
+}
+
+.issuers-name-cell span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.issuers-status-badge {
+  display: inline-block;
+  padding: 7px 11px;
+  border-radius: 25px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.issuers-status-badge.active {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.issuers-status-badge.inactive {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.issuers-action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.issuers-action-buttons button {
+  padding: 9px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  font-size: 13px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.issuers-view-button {
+  color: #3730a3;
+}
+
+.issuers-status-button.deactivate {
+  border-color: #fecaca;
+  background: #fff1f2;
+  color: #991b1b;
+}
+
+.issuers-status-button.activate {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+  color: #166534;
+}
+
+.issuers-action-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.issuers-empty-state {
+  padding: 45px !important;
+  color: #64748b;
+  text-align: center;
+}
+
+.issuers-pagination {
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.issuers-pagination > span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.issuers-pagination div {
+  display: flex;
+  gap: 10px;
+}
+
+.issuers-pagination button {
+  padding: 11px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: white;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.issuers-pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.issuers-info-note {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin: 5px 0 27px;
+  padding: 17px 20px;
+  border: 1px solid #bfdbfe;
+  border-radius: 11px;
+  background: #eff6ff;
+  color: #1e3a8a;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.issuers-info-note strong {
+  font-size: 14px;
+}
+
+.issuers-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.issuers-details-modal {
+  width: min(850px, 100%);
+  padding: 30px;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.issuers-details-modal header {
+  gap: 18px;
+  margin-bottom: 25px;
+  padding-bottom: 19px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.issuers-details-modal h2 {
+  margin: 8px 0 0;
+  font-size: 25px;
+}
+
+.issuers-modal-loading {
+  padding: 20px 0;
+  color: #64748b;
+}
+
+.issuers-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 15px;
+}
+
+.issuers-details-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 11px;
+  background: #f8fafc;
+  overflow-wrap: anywhere;
+}
+
+.issuers-details-grid span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.issuers-details-grid strong {
+  font-size: 14px;
+}
+
+.admin-issuers-footer {
+  margin-top: 40px;
+  padding: 25px;
+  border-top: 1px solid #e2e8f0;
+  color: #94a3b8;
+  font-size: 12px;
+  text-align: center;
+}
+
+@media (max-width: 1050px) {
+  .issuers-filter-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .issuers-search-group {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 650px) {
+  .admin-issuers-page {
+    padding: 25px 15px;
+  }
+
+  .admin-issuers-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-issuers-heading h1 {
+    font-size: 29px;
+  }
+
+  .issuers-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .issuers-filter-form {
+    grid-template-columns: 1fr;
+  }
+
+  .issuers-search-group {
+    grid-column: auto;
+  }
+
+  .issuers-filter-actions {
+    flex-wrap: wrap;
+  }
+
+  .issuers-table-card,
+  .issuers-filter-card {
+    padding: 19px;
+  }
+
+  .issuers-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .issuers-pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-issuers-header {
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .admin-issuers-header-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}

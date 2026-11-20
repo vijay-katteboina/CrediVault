@@ -28,10 +28,15 @@ public class CustomUserDetailsService implements UserDetailsService {
                         )
                 );
 
+        // Only ACTIVE accounts are allowed to authenticate.
+        boolean accountActive =
+                "ACTIVE".equalsIgnoreCase(user.getAccountStatus());
+
         return org.springframework.security.core.userdetails.User
                 .withUsername(user.getEmail())
                 .password(user.getPasswordHash())
                 .roles(user.getRole())
+                .disabled(!accountActive)
                 .build();
     }
 }

@@ -11,6 +11,9 @@ import com.credivault.repository.CredentialRepository;
 import com.credivault.repository.RevocationRecordRepository;
 import com.credivault.repository.VerificationLogRepository;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,19 +89,18 @@ public class VerificationService {
             );
         }
 
-        /*
-         * 4. Find credential.
-         */
+       /*
+        * 4. Find credential.
+        */
         Credential credential =
                 credentialRepository
                         .findByCredentialCode(
                                 request.getCredentialCode()
                         )
                         .orElseThrow(() ->
-                                new IllegalArgumentException(
-                                        "Credential not found: "
-                                                + request
-                                                .getCredentialCode()
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "No credential found with the supplied credential code"
                                 )
                         );
 

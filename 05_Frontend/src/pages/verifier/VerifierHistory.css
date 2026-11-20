@@ -1,69 +1,13 @@
-.history-page {
-  min-height: 100vh;
-  padding: 40px 24px;
-  background: #f5f7fb;
-  color: #111827;
-}
+/* =========================================
+   CREDIVAULT VERIFICATION HISTORY
+========================================= */
 
-.history-container {
-  max-width: 1450px;
-  margin: 0 auto;
-}
-
-.history-header {
+.history-workspace {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column;
   gap: 24px;
-  margin-bottom: 32px;
-}
-
-.history-brand {
-  margin: 0 0 12px;
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 2px;
-}
-
-.history-header h1 {
-  margin: 0;
-  font-size: 34px;
-}
-
-.history-subtitle {
-  margin: 12px 0 0;
-  color: #64748b;
-  line-height: 1.7;
-}
-
-.history-header-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.history-dashboard-button,
-.history-logout-button,
-.history-refresh-button,
-.history-message button {
-  padding: 11px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.history-dashboard-button {
-  background: #ffffff;
-  color: #111827;
-}
-
-.history-logout-button {
-  border-color: #111827;
-  background: #111827;
-  color: #ffffff;
+  width: 100%;
+  min-width: 0;
 }
 
 .history-summary {
@@ -71,10 +15,10 @@
   align-items: center;
   gap: 20px;
   padding: 24px;
-  margin-bottom: 32px;
   border: 1px solid #e2e8f0;
   border-radius: 16px;
   background: #ffffff;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.025);
 }
 
 .history-summary-icon {
@@ -89,8 +33,9 @@
   font-size: 30px;
 }
 
-.history-summary > div:nth-child(2) {
+.history-summary-content {
   flex: 1;
+  min-width: 0;
 }
 
 .history-summary-label,
@@ -104,31 +49,49 @@
 
 .history-summary h2 {
   margin: 0;
+  color: #111827;
   font-size: 30px;
 }
 
-.history-summary > div:nth-child(2) > p:last-child {
+.history-summary-content > p:last-child {
   margin: 6px 0 0;
   color: #64748b;
   font-size: 13px;
   line-height: 1.6;
 }
 
-.history-refresh-button {
+.history-refresh-button,
+.history-message button {
+  min-height: 42px;
+  padding: 11px 16px;
+  border: 1px solid #111827;
+  border-radius: 9px;
   background: #111827;
   color: #ffffff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.history-refresh-button:hover:not(:disabled),
+.history-message button:hover {
+  background: #273449;
 }
 
 .history-refresh-button:disabled {
-  cursor: wait;
   opacity: 0.6;
+  cursor: wait;
 }
 
 .history-records-section {
+  min-width: 0;
   overflow: hidden;
   border: 1px solid #e2e8f0;
-  border-radius: 18px;
+  border-radius: 16px;
   background: #ffffff;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.025);
 }
 
 .history-section-heading {
@@ -141,10 +104,19 @@
 
 .history-section-heading h2 {
   margin: 0;
+  color: #111827;
   font-size: 22px;
 }
 
+.history-section-description {
+  margin: 8px 0 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
 .history-record-count {
+  flex-shrink: 0;
   padding: 8px 12px;
   border-radius: 999px;
   background: #e2e8f0;
@@ -155,12 +127,14 @@
 }
 
 .history-table-wrapper {
+  width: 100%;
   overflow-x: auto;
   border-top: 1px solid #e2e8f0;
 }
 
 .history-table {
   width: 100%;
+  min-width: 980px;
   border-collapse: collapse;
   text-align: left;
   font-size: 12px;
@@ -177,8 +151,9 @@
 }
 
 .history-table td {
-  padding: 18px 17px;
+  padding: 17px;
   border-top: 1px solid #eef2f7;
+  color: #334155;
   vertical-align: middle;
 }
 
@@ -197,7 +172,7 @@
 
 .history-credential-code {
   display: inline-block;
-  max-width: 185px;
+  max-width: 190px;
   color: #334155;
   font-family: Consolas, monospace;
   font-size: 11px;
@@ -259,6 +234,7 @@
 
 .history-message h3 {
   margin: 0 0 10px;
+  color: #111827;
   font-size: 20px;
 }
 
@@ -270,11 +246,9 @@
 
 .history-message button {
   margin-top: 12px;
-  background: #111827;
-  color: #ffffff;
 }
 
-.history-error {
+.history-error h3 {
   color: #991b1b;
 }
 
@@ -289,7 +263,7 @@
   height: 32px;
   margin: 0 auto 18px;
   border: 3px solid #e2e8f0;
-  border-top-color: #111827;
+  border-top-color: #3730a3;
   border-radius: 50%;
   animation: history-spin 0.8s linear infinite;
 }
@@ -300,26 +274,7 @@
   }
 }
 
-.history-footer {
-  padding: 30px 0 10px;
-  color: #94a3b8;
-  font-size: 12px;
-  text-align: center;
-}
-
 @media (max-width: 800px) {
-  .history-page {
-    padding: 25px 16px;
-  }
-
-  .history-header {
-    flex-direction: column;
-  }
-
-  .history-header h1 {
-    font-size: 29px;
-  }
-
   .history-summary {
     flex-wrap: wrap;
     padding: 20px;
@@ -330,6 +285,26 @@
   }
 
   .history-section-heading {
+    align-items: flex-start;
     padding: 20px;
+  }
+}
+
+@media (max-width: 550px) {
+  .history-summary {
+    gap: 14px;
+  }
+
+  .history-summary-icon {
+    width: 46px;
+    height: 46px;
+  }
+
+  .history-summary-content {
+    flex-basis: calc(100% - 65px);
+  }
+
+  .history-section-heading {
+    flex-direction: column;
   }
 }

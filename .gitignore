@@ -55,3 +55,7 @@ Thumbs.db
 # Local test artifacts and diagnostic files
 *-credential.json
 startup-error.txt
+
+
+# JMeter plans containing demo login credentials
+07_Testing/Performance/CrediVault Performance TestingTest Plan.jmx
