@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import AdminLayout from '../../components/layout/AdminLayout'
+import { Alert, Button } from '../../components/ui'
 import './AdminDashboard.css'
 
 const METRICS = [
@@ -142,49 +144,23 @@ function AdminDashboard() {
   }
 
   return (
-    <main className="admin-dashboard-page">
+    <AdminLayout
+      activeKey="dashboard"
+      onLogout={handleLogout}
+      headerActions={(
+        <Button
+          variant="secondary"
+          onClick={refreshDashboard}
+          disabled={loading}
+          loading={refreshing}
+          loadingLabel="Refreshing..."
+        >
+          Refresh Data
+        </Button>
+      )}
+    >
+      <div className="admin-dashboard-page">
       <div className="admin-dashboard-container">
-
-        {/* Header */}
-        <header className="admin-header">
-          <div className="admin-header-brand">
-            <p className="admin-brand-name">CrediVault</p>
-            <span className="admin-role-badge">ADMINISTRATOR</span>
-          </div>
-
-          <button
-            type="button"
-            className="admin-logout-button"
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
-        </header>
-
-        {/* Page heading */}
-        <section className="admin-page-heading">
-          <div>
-            <p className="admin-section-kicker">
-              SYSTEM CONTROL CENTER
-            </p>
-
-            <h1>Administrator Dashboard</h1>
-
-            <p className="admin-page-subtitle">
-              Monitor users, institutions, academic credentials and system
-              activities from one place.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className="admin-refresh-button"
-            onClick={refreshDashboard}
-            disabled={loading || refreshing}
-          >
-            {refreshing ? 'Refreshing...' : '↻ Refresh Data'}
-          </button>
-        </section>
 
         {/* Welcome card */}
         <section className="admin-welcome-card">
@@ -213,9 +189,9 @@ function AdminDashboard() {
 
         {/* Error message */}
         {error && (
-          <div className="admin-error-message" role="alert">
+          <Alert variant="danger" className="admin-error-message">
             {error}
-          </div>
+          </Alert>
         )}
 
         {/* Platform statistics */}
@@ -296,13 +272,13 @@ function AdminDashboard() {
                 Review registered accounts and manage user account status.
               </p>
 
-              <button
+              <Button
                 type="button"
                 className="admin-open-module-button"
                 onClick={() => navigate('/admin/users')}
               >
                 Open User Management →
-              </button>
+              </Button>
             </article>
 
             {/* Issuer Management */}
@@ -316,13 +292,13 @@ function AdminDashboard() {
                 account status.
               </p>
 
-              <button
+              <Button
                 type="button"
                 className="admin-open-module-button"
                 onClick={() => navigate('/admin/issuers')}
               >
                 Open Issuer Management →
-              </button>
+              </Button>
             </article>
 
             {/* Institution Management */}
@@ -335,13 +311,13 @@ function AdminDashboard() {
                 Review registered institutions and their account status.
               </p>
 
-              <button
+              <Button
                 type="button"
                 className="admin-open-module-button"
                 onClick={() => navigate('/admin/institutions')}
               >
                 Open Institution Management →
-              </button>
+              </Button>
             </article>
 
             {/* Audit Management */}
@@ -355,13 +331,13 @@ function AdminDashboard() {
             activities.
           </p>
 
-          <button
+          <Button
             type="button"
             className="admin-open-module-button"
             onClick={() => navigate('/admin/audit-logs')}
           >
             Open Audit Management →
-          </button>
+          </Button>
         </article>
 
           </div>
@@ -374,7 +350,8 @@ function AdminDashboard() {
         </footer>
 
       </div>
-    </main>
+      </div>
+    </AdminLayout>
   )
 }
 

@@ -1,5 +1,7 @@
 package com.credivault.service;
 
+import com.credivault.entity.Institution;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -16,14 +18,28 @@ import java.util.Base64;
 public class DigitalSignatureService {
 
     private final PrivateKey privateKey;
+    private final InstitutionKeyService institutionKeyService;
 
     public DigitalSignatureService(
-            @Value("${credivault.issuer.private-key}") String privateKeyBase64) {
+            @Value("${CREDIVAULT_ISSUER_PRIVATE_KEY:}") String privateKeyBase64) {
+        this.privateKey = loadOptionalPrivateKey(privateKeyBase64);
+        this.institutionKeyService = null;
+    }
 
-        this.privateKey = loadPrivateKey(privateKeyBase64);
+    @Autowired
+    public DigitalSignatureService(
+            @Value("${CREDIVAULT_ISSUER_PRIVATE_KEY:}") String privateKeyBase64,
+            InstitutionKeyService institutionKeyService) {
+        this.privateKey = loadRequiredPrivateKey(privateKeyBase64);
+        this.institutionKeyService = institutionKeyService;
     }
 
     public String sign(String data) {
+        if (privateKey == null) {
+            throw new IllegalStateException(
+                    "CREDIVAULT_ISSUER_PRIVATE_KEY is not configured"
+            );
+        }
 
         try {
             Signature signature =
@@ -46,6 +62,39 @@ public class DigitalSignatureService {
                     e
             );
         }
+    }
+
+    public String sign(String data, Institution institution) {
+            PrivateKey signingKey = privateKey;
+
+            if (institutionKeyService != null) {
+                PrivateKey institutionKey =
+                        institutionKeyService.decryptPrivateKey(institution);
+
+                if (institutionKey != null) {
+                    signingKey = institutionKey;
+                }
+            }
+
+            if (signingKey == null) {
+                throw new IllegalStateException(
+                        "No signing private key is configured for this institution"
+                );
+            }
+
+            try {
+                Signature signature =
+                        Signature.getInstance("SHA256withRSA");
+                signature.initSign(signingKey);
+                signature.update(data.getBytes(StandardCharsets.UTF_8));
+                return Base64.getEncoder()
+                        .encodeToString(signature.sign());
+            } catch (Exception exception) {
+                throw new IllegalStateException(
+                        "Failed to digitally sign credential data",
+                        exception
+                );
+            }
     }
 
     public boolean verify(
@@ -99,6 +148,30 @@ public class DigitalSignatureService {
                     e
             );
         }
+    }
+
+    private PrivateKey loadOptionalPrivateKey(
+            String privateKeyBase64) {
+
+        if (privateKeyBase64 == null
+                || privateKeyBase64.isBlank()) {
+            return null;
+        }
+
+        return loadPrivateKey(privateKeyBase64);
+    }
+
+    private PrivateKey loadRequiredPrivateKey(
+            String privateKeyBase64) {
+
+        if (privateKeyBase64 == null
+                || privateKeyBase64.isBlank()) {
+            throw new IllegalStateException(
+                    "CREDIVAULT_ISSUER_PRIVATE_KEY is required for demo credential signing"
+            );
+        }
+
+        return loadPrivateKey(privateKeyBase64);
     }
 
     private PublicKey loadPublicKey(

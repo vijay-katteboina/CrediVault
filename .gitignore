@@ -59,3 +59,17 @@ startup-error.txt
 
 # JMeter plans containing demo login credentials
 07_Testing/Performance/CrediVault Performance TestingTest Plan.jmx
+# CrediVault local files
+**/credivault-storage/
+controller-diff.txt
+verification-service-diff.txt
+.postman/
+postman/
+.env
+.env.*
+*.pem
+*.key
+*.p12
+node_modules/
+target/
+dist/

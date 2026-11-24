@@ -2,6 +2,14 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import RoleLayout from '../../components/layout/RoleLayout'
+import {
+  Alert,
+  Button,
+  Card,
+  ErrorState,
+  Spinner,
+  StatusBadge,
+} from '../../components/ui'
 import './StudentDashboard.css'
 
 const STUDENT_NAV_ITEMS = [
@@ -145,21 +153,24 @@ function StudentDashboard() {
       profileLoading={loading}
     >
       {loading ? (
-        <div className="student-state-card" role="status">
-          <div className="student-loading-spinner" />
-          <p>Loading your student dashboard...</p>
-        </div>
+        <Spinner
+          label="Loading your student dashboard..."
+          className="student-state-card"
+        />
       ) : error ? (
-        <section className="student-state-card student-error-card" role="alert">
-          <h2>Unable to Load Dashboard</h2>
-          <p>{error}</p>
-          <button type="button" onClick={() => window.location.reload()}>
-            Try Again
-          </button>
-        </section>
+        <ErrorState
+          title="Unable to Load Dashboard"
+          description={error}
+          action={(
+            <Button variant="secondary" onClick={() => window.location.reload()}>
+              Try Again
+            </Button>
+          )}
+          className="student-state-card student-error-card"
+        />
       ) : (
         <div className="student-dashboard-content">
-          <section className="student-welcome-panel">
+          <Card className="student-welcome-panel">
             <div className="student-welcome-avatar">
               {(user?.fullName || 'Student').trim().charAt(0).toUpperCase()}
             </div>
@@ -171,36 +182,37 @@ function StudentDashboard() {
                 Open your wallet to view or present an issued credential.
               </p>
             </div>
-            <span className={`student-account-badge ${(user?.accountStatus || 'unknown').toLowerCase()}`}>
-              {user?.accountStatus || 'STATUS UNKNOWN'}
-            </span>
-          </section>
+            <StatusBadge
+              status={user?.accountStatus || 'STATUS UNKNOWN'}
+              className="student-account-badge"
+            />
+          </Card>
 
           <section className="student-stat-grid" aria-label="Credential summary">
-            <article className="student-stat-card">
+            <Card as="article" className="student-stat-card">
               <span>Total Credentials</span>
               <strong>{wallet ? credentials.length : '—'}</strong>
               <small>Credentials issued to you</small>
-            </article>
-            <article className="student-stat-card">
+            </Card>
+            <Card as="article" className="student-stat-card">
               <span>Active Credentials</span>
               <strong>{wallet ? activeCount : '—'}</strong>
               <small>Currently valid credentials</small>
-            </article>
-            <article className="student-stat-card">
+            </Card>
+            <Card as="article" className="student-stat-card">
               <span>Revoked Credentials</span>
               <strong>{wallet ? revokedCount : '—'}</strong>
               <small>Credentials no longer valid</small>
-            </article>
+            </Card>
           </section>
 
           {walletError && (
-            <div className="student-inline-notice" role="status">
+            <Alert variant="info" className="student-inline-notice">
               {walletError}
-            </div>
+            </Alert>
           )}
 
-          <section className="student-details-panel">
+          <Card className="student-details-panel">
             <div className="student-panel-heading">
               <div>
                 <p className="student-eyebrow">STUDENT INFORMATION</p>
@@ -235,9 +247,9 @@ function StudentDashboard() {
                 <strong>{wallet?.institutionName || 'Not available'}</strong>
               </div>
             </div>
-          </section>
+          </Card>
 
-          <section className="student-quick-actions">
+          <Card className="student-quick-actions">
             <div className="student-panel-heading">
               <div>
                 <p className="student-eyebrow">QUICK ACCESS</p>
@@ -245,8 +257,8 @@ function StudentDashboard() {
               </div>
             </div>
 
-            <button
-              type="button"
+            <Button
+              variant="secondary"
               className="student-open-wallet-card"
               onClick={() => navigate('/student/wallet')}
             >
@@ -256,8 +268,8 @@ function StudentDashboard() {
                 <small>View credential details and display your verification QR codes.</small>
               </span>
               <span className="student-action-arrow">→</span>
-            </button>
-          </section>
+            </Button>
+          </Card>
         </div>
       )}
     </RoleLayout>

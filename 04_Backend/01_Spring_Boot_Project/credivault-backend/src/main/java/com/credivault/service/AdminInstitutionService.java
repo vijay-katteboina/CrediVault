@@ -2,6 +2,9 @@ package com.credivault.service;
 
 import com.credivault.dto.AdminInstitutionResponse;
 import com.credivault.dto.AdminInstitutionStatusRequest;
+import com.credivault.dto.AdminInstitutionBrandingRequest;
+import com.credivault.dto.AdminInstitutionRegistrationRequest;
+import com.credivault.dto.AdminInstitutionRegistrationResponse;
 
 import com.credivault.entity.Institution;
 import com.credivault.entity.User;
@@ -23,13 +26,17 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import org.springframework.stereotype.Service;
 
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Locale;
 import java.util.Set;
+import java.security.KeyPair;
+import java.time.LocalDateTime;
 
 @Service
 public class AdminInstitutionService {
@@ -43,6 +50,9 @@ public class AdminInstitutionService {
     private final CredentialRepository credentialRepository;
     private final UserService userService;
     private final AuditService auditService;
+    private final InstitutionLogoStorageService institutionLogoStorageService;
+    private final InstitutionKeyService institutionKeyService;
+    private final PasswordEncoder passwordEncoder;
 
     public AdminInstitutionService(
             InstitutionRepository institutionRepository,
@@ -50,7 +60,10 @@ public class AdminInstitutionService {
             StudentRepository studentRepository,
             CredentialRepository credentialRepository,
             UserService userService,
-            AuditService auditService) {
+            AuditService auditService,
+            InstitutionLogoStorageService institutionLogoStorageService,
+            InstitutionKeyService institutionKeyService,
+            PasswordEncoder passwordEncoder) {
 
         this.institutionRepository = institutionRepository;
         this.userRepository = userRepository;
@@ -58,6 +71,127 @@ public class AdminInstitutionService {
         this.credentialRepository = credentialRepository;
         this.userService = userService;
         this.auditService = auditService;
+        this.institutionLogoStorageService = institutionLogoStorageService;
+        this.institutionKeyService = institutionKeyService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
+    // =========================================
+    // REGISTER INSTITUTION
+    // =========================================
+
+    @Transactional
+    public AdminInstitutionRegistrationResponse registerInstitution(
+            AdminInstitutionRegistrationRequest request,
+            Authentication authentication) {
+
+        User admin = getActiveAdmin(authentication.getName());
+
+        if (!institutionKeyService.isEncryptionKeyConfigured()) {
+            throw new ResponseStatusException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "University registration is unavailable: configure CREDIVAULT_KEY_MASTER_KEY and restart the backend"
+            );
+        }
+
+        String institutionName =
+                request.getInstitutionName().trim();
+        String institutionCode =
+                request.getInstitutionCode().trim()
+                        .toUpperCase(Locale.ROOT);
+
+        if (institutionRepository
+                .existsByInstitutionCodeIgnoreCase(institutionCode)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Institution code is already registered"
+            );
+        }
+
+        String loginEmail =
+                request.getLoginEmail().trim()
+                        .toLowerCase(Locale.ROOT);
+
+        if (userRepository.findByEmail(loginEmail).isPresent()) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Login email is already registered"
+            );
+        }
+
+        KeyPair keyPair =
+                institutionKeyService.generateRsaKeyPair();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        Institution institution = new Institution();
+        institution.setInstitutionName(institutionName);
+        institution.setInstitutionCode(institutionCode);
+        institution.setPublicKey(
+                InstitutionKeyService.encodePublicKey(
+                        keyPair.getPublic()
+                )
+        );
+        institution.setStatus("ACTIVE");
+        institution.setCreatedAt(now);
+        institution.setInstitutionAddress(
+                blankToNull(request.getInstitutionAddress())
+        );
+        institution.setSignatoryName(
+                blankToNull(request.getSignatoryName())
+        );
+        institution.setSignatoryDesignation(
+                blankToNull(request.getSignatoryDesignation())
+        );
+
+        Institution savedInstitution =
+                institutionRepository.save(institution);
+        institutionRepository.flush();
+
+        institutionKeyService.storeEncryptedPrivateKey(
+                savedInstitution,
+                keyPair.getPrivate(),
+                now
+        );
+
+        User universityLogin = new User();
+        universityLogin.setFullName(institutionName);
+        universityLogin.setEmail(loginEmail);
+        universityLogin.setPasswordHash(
+                passwordEncoder.encode(request.getLoginPassword())
+        );
+        universityLogin.setRole("ISSUER");
+        universityLogin.setAccountStatus("ACTIVE");
+        universityLogin.setInstitution(savedInstitution);
+        universityLogin.setTokenVersion(0);
+        universityLogin.setMustChangePassword(false);
+        universityLogin.setCreatedAt(now);
+
+        User savedUniversityLogin =
+                userRepository.save(universityLogin);
+
+        auditService.record(
+                admin,
+                "REGISTER_INSTITUTION",
+                "INSTITUTION",
+                String.valueOf(savedInstitution.getInstitutionId()),
+                "Registered institution "
+                        + savedInstitution.getInstitutionName()
+                        + " with institution code "
+                        + savedInstitution.getInstitutionCode()
+        );
+        auditService.record(
+                admin,
+                "REGISTER_ISSUER",
+                "USER",
+                String.valueOf(savedUniversityLogin.getUserId()),
+                "Created university login for "
+                        + savedUniversityLogin.getEmail()
+        );
+
+        return new AdminInstitutionRegistrationResponse(
+                toResponse(savedInstitution)
+        );
     }
 
     // =========================================
@@ -95,8 +229,7 @@ public class AdminInstitutionService {
             );
         }
 
-        String normalizedStatus =
-                normalizeStatus(status);
+        String normalizedStatus = normalizeStatus(status);
 
         Specification<Institution> specification =
                 (root, query, builder) -> {
@@ -173,8 +306,7 @@ public class AdminInstitutionService {
 
         getActiveAdmin(authentication.getName());
 
-        Institution institution =
-                findInstitution(institutionId);
+        Institution institution = findInstitution(institutionId);
 
         return toResponse(institution);
     }
@@ -189,24 +321,17 @@ public class AdminInstitutionService {
             AdminInstitutionStatusRequest request,
             Authentication authentication) {
 
-        User admin =
-                getActiveAdmin(authentication.getName());
+        User admin = getActiveAdmin(authentication.getName());
 
-        Institution institution =
-                findInstitution(institutionId);
+        Institution institution = findInstitution(institutionId);
 
-        String newStatus =
-                normalizeStatus(request.getStatus());
+        String newStatus = normalizeStatus(request.getStatus());
 
-        String oldStatus =
-                institution.getStatus();
+        String oldStatus = institution.getStatus();
 
         if (oldStatus.equalsIgnoreCase(newStatus)) {
             return toResponse(institution);
         }
-
-        // Update institution status only.
-        // Do not modify public keys, issuers or credentials.
 
         institution.setStatus(newStatus);
 
@@ -222,9 +347,7 @@ public class AdminInstitutionService {
                 admin,
                 action,
                 "INSTITUTION",
-                String.valueOf(
-                        savedInstitution.getInstitutionId()
-                ),
+                String.valueOf(savedInstitution.getInstitutionId()),
                 "Institution "
                         + savedInstitution.getInstitutionName()
                         + " status changed from "
@@ -237,7 +360,86 @@ public class AdminInstitutionService {
     }
 
     // =========================================
-    // 4. FIND INSTITUTION
+    // 4. UPDATE INSTITUTION BRANDING
+    // =========================================
+
+    @Transactional
+    public AdminInstitutionResponse updateInstitutionBranding(
+            Long institutionId,
+            AdminInstitutionBrandingRequest request,
+            Authentication authentication) {
+
+        User admin = getActiveAdmin(authentication.getName());
+
+        Institution institution = findInstitution(institutionId);
+
+        institution.setInstitutionAddress(
+                request.getInstitutionAddress().trim()
+        );
+
+        institution.setSignatoryName(
+                request.getSignatoryName().trim()
+        );
+
+        institution.setSignatoryDesignation(
+                request.getSignatoryDesignation().trim()
+        );
+
+        Institution savedInstitution =
+                institutionRepository.save(institution);
+
+        auditService.record(
+                admin,
+                "UPDATE_INSTITUTION_BRANDING",
+                "INSTITUTION",
+                String.valueOf(savedInstitution.getInstitutionId()),
+                "Updated certificate branding details for institution "
+                        + savedInstitution.getInstitutionName()
+        );
+
+        return toResponse(savedInstitution);
+    }
+
+    // =========================================
+    // 5. UPLOAD / REPLACE INSTITUTION LOGO
+    // =========================================
+
+    @Transactional
+    public AdminInstitutionResponse uploadInstitutionLogo(
+            Long institutionId,
+            MultipartFile file,
+            Authentication authentication) {
+
+        User admin = getActiveAdmin(authentication.getName());
+
+        Institution institution = findInstitution(institutionId);
+
+        String oldLogoPath = institution.getLogoPath();
+
+        String newLogoPath =
+                institutionLogoStorageService.storeLogo(file);
+
+        institution.setLogoPath(newLogoPath);
+
+        Institution savedInstitution =
+                institutionRepository.save(institution);
+
+        auditService.record(
+                admin,
+                "UPLOAD_INSTITUTION_LOGO",
+                "INSTITUTION",
+                String.valueOf(savedInstitution.getInstitutionId()),
+                "Uploaded or replaced institution logo for "
+                        + savedInstitution.getInstitutionName()
+                        + ". Previous logo: "
+                        + (oldLogoPath == null ? "None" : "Existing logo")
+        );
+
+        return toResponse(savedInstitution);
+    }
+
+    // =========================================
+    // 6. FIND INSTITUTION
     // =========================================
 
     private Institution findInstitution(Long institutionId) {
@@ -252,7 +454,7 @@ public class AdminInstitutionService {
     }
 
     // =========================================
-    // 5. ADMINISTRATOR AUTHORIZATION
+    // 7. ADMINISTRATOR AUTHORIZATION
     // =========================================
 
     private User getActiveAdmin(String email) {
@@ -283,7 +485,7 @@ public class AdminInstitutionService {
     }
 
     // =========================================
-    // 6. STATUS VALIDATION
+    // 8. STATUS VALIDATION
     // =========================================
 
     private String normalizeStatus(String status) {
@@ -305,15 +507,20 @@ public class AdminInstitutionService {
         return normalized;
     }
 
+    private String blankToNull(String value) {
+        return value == null || value.trim().isEmpty()
+                ? null
+                : value.trim();
+    }
+
     // =========================================
-    // 7. ENTITY TO RESPONSE DTO
+    // 9. ENTITY TO RESPONSE DTO
     // =========================================
 
     private AdminInstitutionResponse toResponse(
             Institution institution) {
 
-        Long institutionId =
-                institution.getInstitutionId();
+        Long institutionId = institution.getInstitutionId();
 
         long totalIssuers =
                 userRepository
@@ -336,6 +543,10 @@ public class AdminInstitutionService {
                 institution.getInstitutionCode(),
                 institution.getStatus(),
                 institution.getCreatedAt(),
+                institution.getInstitutionAddress(),
+                institution.getLogoPath(),
+                institution.getSignatoryName(),
+                institution.getSignatoryDesignation(),
                 totalIssuers,
                 totalStudents,
                 totalCredentials

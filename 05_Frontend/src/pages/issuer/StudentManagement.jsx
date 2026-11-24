@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import {
+  Alert,
+  Button,
+  DataTable,
+  EmptyState,
+  Input,
+  Spinner,
+  StatusBadge,
+} from '../../components/ui'
 import './StudentManagement.css'
 
 const INITIAL_FORM = {
@@ -389,14 +398,15 @@ useEffect(() => {
           </p>
         </div>
 
-        <button
-          type="button"
-          className="sm-refresh-button"
+        <Button
+          variant="secondary"
           onClick={() => loadStudents(true)}
           disabled={refreshing || loading}
+          loading={refreshing}
+          loadingLabel="Refreshing..."
         >
-          {refreshing ? 'Refreshing...' : 'Refresh Students'}
-        </button>
+          Refresh Students
+        </Button>
       </div>
 
       {/* Statistics */}
@@ -421,15 +431,15 @@ useEffect(() => {
 
       {/* Global messages */}
       {error && (
-        <div className="sm-error" role="alert">
+        <Alert variant="danger" className="sm-error">
           {error}
-        </div>
+        </Alert>
       )}
 
       {notice && (
-        <div className="sm-success" role="status">
+        <Alert variant="success" className="sm-success">
           {notice}
-        </div>
+        </Alert>
       )}
 
       {/* Student registration */}
@@ -457,7 +467,7 @@ useEffect(() => {
           <div className="sm-field">
             <label htmlFor="sm-fullName">Full Name</label>
 
-            <input
+            <Input
               id="sm-fullName"
               name="fullName"
               value={formData.fullName}
@@ -471,7 +481,7 @@ useEffect(() => {
           <div className="sm-field">
             <label htmlFor="sm-email">Email Address</label>
 
-            <input
+            <Input
               id="sm-email"
               name="email"
               type="email"
@@ -488,7 +498,7 @@ useEffect(() => {
               Temporary Password
             </label>
 
-            <input
+            <Input
               id="sm-password"
               name="password"
               type="password"
@@ -507,7 +517,7 @@ useEffect(() => {
               Student Number
             </label>
 
-            <input
+            <Input
               id="sm-studentNumber"
               name="studentNumber"
               value={formData.studentNumber}
@@ -521,7 +531,7 @@ useEffect(() => {
           <div className="sm-field">
             <label htmlFor="sm-course">Course</label>
 
-            <input
+            <Input
               id="sm-course"
               name="course"
               value={formData.course}
@@ -537,7 +547,7 @@ useEffect(() => {
               Academic Year
             </label>
 
-            <input
+            <Input
               id="sm-academicYear"
               name="academicYear"
               value={formData.academicYear}
@@ -549,9 +559,8 @@ useEffect(() => {
           </div>
 
           <div className="sm-form-actions">
-            <button
-              type="button"
-              className="sm-secondary-button"
+            <Button
+              variant="secondary"
               onClick={() => {
                 setFormData({ ...INITIAL_FORM })
                 setError('')
@@ -559,17 +568,15 @@ useEffect(() => {
               disabled={registering}
             >
               Clear Form
-            </button>
+            </Button>
 
-            <button
+            <Button
               type="submit"
-              className="sm-primary-button"
-              disabled={registering}
+              loading={registering}
+              loadingLabel="Registering Student..."
             >
-              {registering
-                ? 'Registering Student...'
-                : 'Register Student'}
-            </button>
+              Register Student
+            </Button>
           </div>
 
         </form>
@@ -605,7 +612,7 @@ useEffect(() => {
 
         {/* Search */}
         <div className="sm-search">
-          <input
+          <Input
             type="search"
             value={searchTerm}
             onChange={(event) =>
@@ -617,19 +624,26 @@ useEffect(() => {
         </div>
 
         {loading ? (
-          <div className="sm-empty-state">
-            Loading registered students...
-          </div>
+          <Spinner
+            label="Loading registered students..."
+            className="sm-empty-state"
+          />
         ) : filteredStudents.length === 0 ? (
-          <div className="sm-empty-state">
-            {students.length === 0
-              ? 'No students are registered yet.'
-              : 'No students match your search.'}
-          </div>
+          <EmptyState
+            title={students.length === 0 ? 'No students registered' : 'No matching students'}
+            description={
+              students.length === 0
+                ? 'Students registered for your institution will appear here.'
+                : 'Try changing your search terms.'
+            }
+            className="sm-empty-state"
+          />
         ) : (
-          <div className="sm-table-wrapper">
-
-            <table className="sm-table">
+          <DataTable
+            wrapperClassName="sm-table-wrapper"
+            className="sm-table"
+            caption="Registered students"
+          >
               <thead>
                 <tr>
                   <th>Student</th>
@@ -663,57 +677,44 @@ useEffect(() => {
                     </td>
 
                     <td>
-                      <span
-                        className={`sm-status ${
-                          student.accountStatus?.toLowerCase() ||
-                          'unknown'
-                        }`}
-                      >
-                        {student.accountStatus || 'UNKNOWN'}
-                      </span>
+                      <StatusBadge status={student.accountStatus || 'UNKNOWN'} />
                     </td>
 
                     <td>
                       <div className="sm-actions">
 
-                        <button
-                          type="button"
-                          className="sm-view-button"
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() =>
                             handleViewStudent(student.studentId)
                           }
                         >
                           View
-                        </button>
+                        </Button>
 
-                        <button
-                          type="button"
-                          className="sm-edit-button"
+                        <Button
+                          variant="secondary"
+                          size="sm"
                           onClick={() => handleStartEdit(student)}
                         >
                           Edit
-                        </button>
+                        </Button>
 
-                        <button
-                          type="button"
-                          className={
-                            student.accountStatus === 'ACTIVE'
-                              ? 'sm-deactivate-button'
-                              : 'sm-activate-button'
-                          }
+                        <Button
+                          variant={student.accountStatus === 'ACTIVE' ? 'danger' : 'secondary'}
+                          size="sm"
                           disabled={
                             statusUpdatingId === student.studentId
                           }
+                          loading={statusUpdatingId === student.studentId}
+                          loadingLabel="Updating..."
                           onClick={() =>
                             handleStatusChange(student)
                           }
                         >
-                          {statusUpdatingId === student.studentId
-                            ? 'Updating...'
-                            : student.accountStatus === 'ACTIVE'
-                              ? 'Deactivate'
-                              : 'Activate'}
-                        </button>
+                          {student.accountStatus === 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                        </Button>
 
                       </div>
                     </td>
@@ -721,9 +722,7 @@ useEffect(() => {
                   </tr>
                 ))}
               </tbody>
-            </table>
-
-          </div>
+            </DataTable>
         )}
       </div>
 
@@ -740,13 +739,12 @@ useEffect(() => {
               <h3>Student Details</h3>
             </div>
 
-            <button
-              type="button"
-              className="sm-close-button"
+            <Button
+              variant="secondary"
               onClick={() => setViewingStudent(null)}
             >
               Close
-            </button>
+            </Button>
           </div>
 
           <div className="sm-details-grid">
@@ -783,7 +781,7 @@ useEffect(() => {
 
             <div>
               <span>Account Status</span>
-              <strong>{viewingStudent.accountStatus}</strong>
+              <StatusBadge status={viewingStudent.accountStatus} />
             </div>
 
           </div>
@@ -792,9 +790,7 @@ useEffect(() => {
       )}
 
       {detailsLoading && (
-        <div className="sm-empty-state">
-          Loading student details...
-        </div>
+        <Spinner label="Loading student details..." className="sm-empty-state" />
       )}
 
       {/* Student edit form */}
@@ -823,7 +819,7 @@ useEffect(() => {
             <div className="sm-field">
               <label htmlFor="sm-edit-name">Full Name</label>
 
-              <input
+              <Input
                 id="sm-edit-name"
                 name="fullName"
                 value={editForm.fullName}
@@ -836,7 +832,7 @@ useEffect(() => {
             <div className="sm-field">
               <label htmlFor="sm-edit-course">Course</label>
 
-              <input
+              <Input
                 id="sm-edit-course"
                 name="course"
                 value={editForm.course}
@@ -849,7 +845,7 @@ useEffect(() => {
             <div className="sm-field">
               <label htmlFor="sm-edit-year">Academic Year</label>
 
-              <input
+              <Input
                 id="sm-edit-year"
                 name="academicYear"
                 value={editForm.academicYear}
@@ -861,24 +857,21 @@ useEffect(() => {
 
             <div className="sm-form-actions">
 
-              <button
-                type="button"
-                className="sm-secondary-button"
+              <Button
+                variant="secondary"
                 onClick={() => setEditingStudent(null)}
                 disabled={savingEdit}
               >
                 Cancel
-              </button>
+              </Button>
 
-              <button
+              <Button
                 type="submit"
-                className="sm-primary-button"
-                disabled={savingEdit}
+                loading={savingEdit}
+                loadingLabel="Saving Changes..."
               >
-                {savingEdit
-                  ? 'Saving Changes...'
-                  : 'Save Changes'}
-              </button>
+                Save Changes
+              </Button>
 
             </div>
 

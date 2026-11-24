@@ -16,6 +16,7 @@ import com.credivault.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -43,6 +44,7 @@ class CredentialServiceAuthorizationTest {
     private DigitalSignatureService digitalSignatureService;
     private AuditService auditService;
     private ObjectMapper objectMapper;
+    private ApplicationEventPublisher eventPublisher;
 
     private CredentialService credentialService;
 
@@ -54,10 +56,15 @@ class CredentialServiceAuthorizationTest {
         studentRepository = mock(StudentRepository.class);
         userService = mock(UserService.class);
         hashService = mock(HashService.class);
+
         digitalSignatureService =
                 mock(DigitalSignatureService.class);
+
         auditService = mock(AuditService.class);
         objectMapper = mock(ObjectMapper.class);
+
+        // Mock event publisher for credential-issued events.
+        eventPublisher = mock(ApplicationEventPublisher.class);
 
         credentialService = new CredentialService(
                 credentialRepository,
@@ -66,7 +73,8 @@ class CredentialServiceAuthorizationTest {
                 hashService,
                 digitalSignatureService,
                 auditService,
-                objectMapper
+                objectMapper,
+                eventPublisher
         );
     }
 
@@ -114,6 +122,7 @@ class CredentialServiceAuthorizationTest {
         CredentialRequest request = new CredentialRequest();
         request.setStudentId(4L);
         request.setCredentialType("MCA Degree");
+
         request.setCredentialData(
                 Map.of(
                         "studentName",
@@ -144,12 +153,13 @@ class CredentialServiceAuthorizationTest {
                 never()
         ).save(any(Credential.class));
 
-        // No hashing, signing, or audit event should occur.
+        // No hashing, signing, audit, or event publishing should occur.
         verifyNoInteractions(
                 hashService,
                 digitalSignatureService,
                 auditService,
-                objectMapper
+                objectMapper,
+                eventPublisher
         );
     }
 }

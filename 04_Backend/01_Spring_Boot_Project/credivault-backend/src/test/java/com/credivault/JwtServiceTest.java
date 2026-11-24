@@ -27,12 +27,18 @@ class JwtServiceTest {
 
         String email = "user@example.com";
         String role = "STUDENT";
+        Integer tokenVersion = 0;
 
-        String token = jwtService.generateToken(email, role);
+        String token = jwtService.generateToken(
+                email,
+                role,
+                tokenVersion
+        );
 
         assertNotNull(token);
         assertEquals(email, jwtService.extractEmail(token));
         assertEquals(role, jwtService.extractRole(token));
+        assertEquals(tokenVersion, jwtService.extractTokenVersion(token));
     }
 
     @Test
@@ -41,7 +47,11 @@ class JwtServiceTest {
         String email = "user@example.com";
         String role = "STUDENT";
 
-        String token = jwtService.generateToken(email, role);
+        String token = jwtService.generateToken(
+                email,
+                role,
+                0
+        );
 
         assertTrue(jwtService.isTokenValid(token, email));
     }
@@ -51,7 +61,8 @@ class JwtServiceTest {
 
         String token = jwtService.generateToken(
                 "user@example.com",
-                "STUDENT"
+                "STUDENT",
+                0
         );
 
         assertFalse(
@@ -60,5 +71,29 @@ class JwtServiceTest {
                         "another@example.com"
                 )
         );
+    }
+
+    @Test
+    void shouldExtractCorrectTokenVersion() {
+
+        String token = jwtService.generateToken(
+                "user@example.com",
+                "STUDENT",
+                5
+        );
+
+        assertEquals(5, jwtService.extractTokenVersion(token));
+    }
+
+    @Test
+    void shouldPreserveTokenVersionZero() {
+
+        String token = jwtService.generateToken(
+                "user@example.com",
+                "STUDENT",
+                0
+        );
+
+        assertEquals(0, jwtService.extractTokenVersion(token));
     }
 }

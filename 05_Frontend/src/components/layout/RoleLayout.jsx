@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './RoleLayout.css'
 
 function RoleLayout({
@@ -11,8 +11,12 @@ function RoleLayout({
   profile,
   profileLoading = false,
   profileError = '',
+  headerActions,
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const sidebarRef = useRef(null)
+  const menuToggleRef = useRef(null)
+  const wasMobileOpen = useRef(false)
 
   const activeItem = navItems.find(
     (item) => item.key === activeKey
@@ -41,18 +45,77 @@ function RoleLayout({
     setMobileOpen(false)
   }
 
+  useEffect(() => {
+    if (!mobileOpen) {
+      if (wasMobileOpen.current) {
+        menuToggleRef.current?.focus()
+      }
+      wasMobileOpen.current = false
+      return undefined
+    }
+
+    const sidebar = sidebarRef.current
+    const focusableSelector =
+      'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
+    const focusableItems = sidebar?.querySelectorAll(focusableSelector)
+    focusableItems?.[0]?.focus()
+    wasMobileOpen.current = true
+
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setMobileOpen(false)
+        return
+      }
+
+      if (event.key !== 'Tab' || !sidebar) return
+
+      const items = sidebar.querySelectorAll(focusableSelector)
+      const firstItem = items[0]
+      const lastItem = items[items.length - 1]
+
+      if (!firstItem || !lastItem) {
+        event.preventDefault()
+      } else if (
+        event.shiftKey &&
+        (document.activeElement === firstItem ||
+          !sidebar.contains(document.activeElement))
+      ) {
+        event.preventDefault()
+        lastItem.focus()
+      } else if (
+        !event.shiftKey &&
+        (document.activeElement === lastItem ||
+          !sidebar.contains(document.activeElement))
+      ) {
+        event.preventDefault()
+        firstItem.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [mobileOpen])
+
   return (
     <div className={`role-layout ${mobileOpen ? 'sidebar-open' : ''}`}>
 
       {/* Sidebar */}
-      <aside className="role-sidebar">
+      <aside
+        ref={sidebarRef}
+        id="role-sidebar"
+        className="role-sidebar"
+        role={mobileOpen ? 'dialog' : undefined}
+        aria-modal={mobileOpen ? 'true' : undefined}
+        aria-labelledby="role-sidebar-title"
+        tabIndex={mobileOpen ? -1 : undefined}
+      >
 
         {/* Branding */}
         <div className="role-brand">
           <div className="role-brand-icon">CV</div>
 
           <div>
-            <h2>CrediVault</h2>
+            <h2 id="role-sidebar-title">CrediVault</h2>
             <span>ACADEMIC CREDENTIAL SYSTEM</span>
           </div>
         </div>
@@ -111,7 +174,10 @@ function RoleLayout({
         </div>
 
         {/* Navigation */}
-        <nav className="role-navigation">
+        <nav
+          className="role-navigation"
+          aria-label={`${roleName[role] || role} workspace`}
+        >
 
           <p className="role-navigation-label">
             WORKSPACE
@@ -182,15 +248,17 @@ function RoleLayout({
           <div className="role-topbar-left">
 
             <button
+              ref={menuToggleRef}
               type="button"
               className="role-menu-toggle"
+              aria-controls="role-sidebar"
+              aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'}
               onClick={() =>
                 setMobileOpen((current) => !current)
               }
-              aria-label="Toggle navigation"
               aria-expanded={mobileOpen}
             >
-              ☰
+              {mobileOpen ? '×' : '☰'}
             </button>
 
             <div className="role-breadcrumb">
@@ -243,6 +311,12 @@ function RoleLayout({
               </p>
             </div>
 
+            {headerActions && (
+              <div className="role-page-heading-actions">
+                {headerActions}
+              </div>
+            )}
+
           </section>
 
           <section className="role-content-area">
@@ -262,3 +336,4 @@ function RoleLayout({
 }
 
 export default RoleLayout
+export { RoleLayout as AppShell }

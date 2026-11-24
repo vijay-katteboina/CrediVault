@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import api from '../../services/api'
+import AdminLayout from '../../components/layout/AdminLayout'
+import { Alert, Button, DataTable, Modal, Pagination, StatusBadge } from '../../components/ui'
 import './AdminUserManagement.css'
 
 function AdminUserManagement() {
@@ -268,73 +270,23 @@ function AdminUserManagement() {
   }
 
   return (
-    <main className="admin-users-page">
+    <AdminLayout
+      activeKey="users"
+      onLogout={handleLogout}
+      headerActions={(
+        <Button
+          variant="secondary"
+          onClick={refreshUsers}
+          loading={loading}
+          loadingLabel="Refreshing..."
+        >
+          Refresh Users
+        </Button>
+      )}
+    >
+      <div className="admin-users-page">
 
       <div className="admin-users-container">
-
-        {/* HEADER */}
-
-        <header className="admin-users-header">
-
-          <div>
-            <p className="admin-users-brand">
-              CrediVault
-            </p>
-
-            <span className="admin-users-role">
-              ADMINISTRATOR
-            </span>
-          </div>
-
-          <div className="admin-users-header-actions">
-
-            <button
-              type="button"
-              className="users-back-button"
-              onClick={() => navigate('/admin')}
-            >
-              Dashboard
-            </button>
-
-            <button
-              type="button"
-              className="users-logout-button"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
-
-          </div>
-
-        </header>
-
-        {/* PAGE TITLE */}
-
-        <section className="admin-users-heading">
-
-          <div>
-            <p className="users-kicker">
-              SYSTEM ADMINISTRATION
-            </p>
-
-            <h1>User Management</h1>
-
-            <p>
-              Review, search and manage all registered CrediVault
-              user accounts.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className="users-refresh-button"
-            onClick={refreshUsers}
-            disabled={loading}
-          >
-            ↻ Refresh Users
-          </button>
-
-        </section>
 
         {/* STATISTICS */}
 
@@ -360,15 +312,15 @@ function AdminUserManagement() {
         {/* NOTIFICATIONS */}
 
         {notice && (
-          <div className="users-success-message" role="status">
+          <Alert variant="success" className="users-success-message">
             {notice}
-          </div>
+          </Alert>
         )}
 
         {error && (
-          <div className="users-error-message" role="alert">
+          <Alert variant="danger" className="users-error-message">
             {error}
-          </div>
+          </Alert>
         )}
 
         {/* FILTERS */}
@@ -494,9 +446,11 @@ function AdminUserManagement() {
 
           </div>
 
-          <div className="users-table-wrapper">
-
-            <table className="admin-users-table">
+          <DataTable
+            wrapperClassName="users-table-wrapper"
+            className="admin-users-table"
+            caption="All CrediVault user records"
+          >
 
               <thead>
                 <tr>
@@ -566,9 +520,7 @@ function AdminUserManagement() {
                         </td>
 
                         <td>
-                          <span className={`users-status-badge ${isActive ? 'active' : 'inactive'}`}>
-                            {user.accountStatus}
-                          </span>
+                          <StatusBadge status={user.accountStatus} />
                         </td>
 
                         <td>
@@ -615,94 +567,41 @@ function AdminUserManagement() {
 
               </tbody>
 
-            </table>
-
-          </div>
+          </DataTable>
 
           {/* PAGINATION */}
-
-          <div className="users-pagination">
-
-            <span>
-              Page {page + 1} of {totalPages}
-            </span>
-
-            <div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setLoading(true)
-                  setPage((current) => current - 1)
-                }}
-                disabled={page === 0 || loading}
-              >
-                ← Previous
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setLoading(true)
-                  setPage((current) => current + 1)
-                }}
-                disabled={page + 1 >= totalPages || loading}
-              >
-                Next →
-              </button>
-
-            </div>
-
-          </div>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            disabled={loading}
+            label="User records pages"
+            className="users-pagination"
+            onPageChange={(nextPage) => {
+              setLoading(true)
+              setPage(nextPage)
+            }}
+          />
 
         </section>
 
         {/* USER DETAILS MODAL */}
 
         {(detailLoading || selectedUser) && (
-
-          <div className="users-modal-overlay">
-
-            <section
-              className="users-details-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="userDetailsTitle"
-            >
-
-              <header>
-
-                <div>
-                  <p className="users-kicker">
-                    ACCOUNT INFORMATION
-                  </p>
-
-                  <h2 id="userDetailsTitle">
-                    User Details
-                  </h2>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedUser(null)
-                    setDetailLoading(false)
-                  }}
-                >
-                  Close
-                </button>
-
-              </header>
-
-              {detailLoading ? (
-
-                <p>Loading user details...</p>
-
-              ) : (
-
-                selectedUser && (
-
-                  <div className="users-details-grid">
+          <Modal
+            open
+            onClose={() => {
+              setSelectedUser(null)
+              setDetailLoading(false)
+            }}
+            title="User Details"
+            description="Review this user's account and institution information."
+            className="users-details-modal"
+          >
+            {detailLoading ? (
+              <p>Loading user details...</p>
+            ) : (
+              selectedUser && (
+                <div className="users-details-grid">
 
                     <div>
                       <span>User ID</span>
@@ -750,22 +649,15 @@ function AdminUserManagement() {
                       </strong>
                     </div>
 
-                  </div>
-                )
-              )}
-
-            </section>
-
-          </div>
+                </div>
+              )
+            )}
+          </Modal>
         )}
 
-        <footer className="admin-users-footer">
-          CrediVault · Administrator User Management
-        </footer>
-
       </div>
-
-    </main>
+      </div>
+    </AdminLayout>
   )
 }
 

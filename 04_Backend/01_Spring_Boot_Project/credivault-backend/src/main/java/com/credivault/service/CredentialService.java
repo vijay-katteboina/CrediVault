@@ -1,18 +1,20 @@
 package com.credivault.service;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 import com.credivault.dto.CredentialRequest;
 import com.credivault.dto.CredentialResponse;
 import com.credivault.entity.Credential;
 import com.credivault.entity.Institution;
 import com.credivault.entity.Student;
 import com.credivault.entity.User;
+import com.credivault.event.CredentialIssuedEvent;
 import com.credivault.repository.CredentialRepository;
 import com.credivault.repository.StudentRepository;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.SerializationFeature;
@@ -33,6 +35,7 @@ public class CredentialService {
     private final DigitalSignatureService digitalSignatureService;
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
+    private final ApplicationEventPublisher eventPublisher;
 
     public CredentialService(
             CredentialRepository credentialRepository,
@@ -41,7 +44,8 @@ public class CredentialService {
             HashService hashService,
             DigitalSignatureService digitalSignatureService,
             AuditService auditService,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            ApplicationEventPublisher eventPublisher) {
 
         this.credentialRepository = credentialRepository;
         this.studentRepository = studentRepository;
@@ -50,6 +54,7 @@ public class CredentialService {
         this.digitalSignatureService = digitalSignatureService;
         this.auditService = auditService;
         this.objectMapper = objectMapper;
+        this.eventPublisher = eventPublisher;
     }
 
     /**
@@ -144,15 +149,15 @@ public class CredentialService {
         // 8. Enforce institution-level authorization.
         // The issuer and student must belong to the same institution.
         if (!Objects.equals(
-        issuerInstitution.getInstitutionId(),
-        studentInstitution.getInstitutionId())) {
+                issuerInstitution.getInstitutionId(),
+                studentInstitution.getInstitutionId())) {
 
-    throw new ResponseStatusException(
-            HttpStatus.FORBIDDEN,
-            "Issuer is not authorized to issue credentials "
-                    + "for this student's institution"
-    );
-}
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Issuer is not authorized to issue credentials "
+                            + "for this student's institution"
+            );
+        }
 
         // 9. Verify that the student's institution is active.
         if (!"ACTIVE".equalsIgnoreCase(
@@ -196,7 +201,10 @@ public class CredentialService {
 
         // 12. Digitally sign the hash.
         String digitalSignature =
-                digitalSignatureService.sign(dataHash);
+                digitalSignatureService.sign(
+                        dataHash,
+                        studentInstitution
+                );
 
         // 13. Generate a unique credential code.
         String credentialCode =
@@ -274,7 +282,23 @@ public class CredentialService {
                         + student.getStudentNumber()
         );
 
-        // 17. Return the response DTO.
+        /*
+         * 17. Publish certificate email event.
+         *
+         * CertificateEmailListener will process this event
+         * only after the transaction successfully commits.
+         *
+         * Email failure will not roll back credential issuance.
+         */
+        eventPublisher.publishEvent(
+                new CredentialIssuedEvent(
+                        savedCredential.getCredentialCode(),
+                        student.getUser().getEmail(),
+                        student.getUser().getFullName()
+                )
+        );
+
+        // 18. Return the response DTO.
         return toResponse(savedCredential);
     }
 

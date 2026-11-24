@@ -2,11 +2,14 @@ package com.credivault.service;
 
 import com.credivault.dto.VerificationRequest;
 import com.credivault.dto.VerificationResponse;
+import com.credivault.dto.PublicVerificationResponse;
+
 import com.credivault.entity.Credential;
 import com.credivault.entity.Institution;
 import com.credivault.entity.Student;
 import com.credivault.entity.User;
 import com.credivault.entity.VerificationLog;
+
 import com.credivault.repository.CredentialRepository;
 import com.credivault.repository.RevocationRecordRepository;
 import com.credivault.repository.VerificationLogRepository;
@@ -51,47 +54,104 @@ public class VerificationService {
         this.objectMapper = objectMapper;
     }
 
+    /*
+     * AUTHENTICATED VERIFICATION
+     *
+     * Used by authorized Verifier accounts.
+     * Preserves the existing detailed response.
+     */
     @Transactional
     public VerificationResponse verifyCredential(
             VerificationRequest request,
             String verifierEmail,
             String verificationIp) {
 
-        /*
-         * 1. Find the authenticated verifier.
-         */
+        if (verifierEmail == null || verifierEmail.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Verifier authentication is required"
+            );
+        }
+
+        User verifier = validateVerifier(verifierEmail);
+
+        VerificationOutcome outcome = performVerification(
+                request,
+                verifier,
+                verificationIp
+        );
+
+        return toResponse(outcome);
+    }
+
+    /*
+     * PUBLIC VERIFICATION
+     *
+     * Used by visitors without login.
+     * Returns limited public information.
+     */
+    @Transactional
+    public PublicVerificationResponse verifyPublicCredential(
+            VerificationRequest request,
+            String verificationIp) {
+
+        VerificationOutcome outcome = performVerification(
+                request,
+                null,
+                verificationIp
+        );
+
+        return toPublicResponse(outcome);
+    }
+
+    /*
+     * VALIDATE AUTHENTICATED VERIFIER
+     */
+    private User validateVerifier(String verifierEmail) {
+
         User verifier = userService
                 .findByEmail(verifierEmail)
                 .orElseThrow(() ->
-                        new IllegalStateException(
+                        new ResponseStatusException(
+                                HttpStatus.UNAUTHORIZED,
                                 "Authenticated verifier not found"
                         )
                 );
 
-        /*
-         * 2. Verify verifier role.
-         */
         if (!"VERIFIER".equalsIgnoreCase(verifier.getRole())) {
 
-            throw new IllegalStateException(
-                    "Only VERIFIER users can verify credentials"
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Only VERIFIER users can access verifier operations"
             );
         }
 
-        /*
-         * 3. Verify verifier account status.
-         */
         if (!"ACTIVE".equalsIgnoreCase(
                 verifier.getAccountStatus())) {
 
-            throw new IllegalStateException(
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
                     "Verifier account is not active"
             );
         }
 
-       /*
-        * 4. Find credential.
-        */
+        return verifier;
+    }
+
+    /*
+     * SHARED VERIFICATION ENGINE
+     *
+     * Both public and authenticated verification
+     * use exactly the same cryptographic checks.
+     */
+    private VerificationOutcome performVerification(
+            VerificationRequest request,
+            User verifier,
+            String verificationIp) {
+
+        /*
+         * 1. Find credential.
+         */
         Credential credential =
                 credentialRepository
                         .findByCredentialCode(
@@ -105,7 +165,7 @@ public class VerificationService {
                         );
 
         /*
-         * 5. Get institution.
+         * 2. Get issuing institution.
          */
         Institution institution =
                 credential.getInstitution();
@@ -118,8 +178,7 @@ public class VerificationService {
         }
 
         /*
-         * 6. Re-create the exact canonical JSON representation
-         *    that was used during credential issuance.
+         * 3. Re-create canonical JSON.
          */
         String canonicalData;
 
@@ -143,13 +202,13 @@ public class VerificationService {
         }
 
         /*
-         * 7. Recalculate SHA-256.
+         * 4. Recalculate SHA-256.
          */
         String recalculatedHash =
                 hashService.sha256(canonicalData);
 
         /*
-         * 8. Compare the stored hash with the recalculated hash.
+         * 5. Check data integrity.
          */
         boolean integrityValid =
                 recalculatedHash.equals(
@@ -157,10 +216,7 @@ public class VerificationService {
                 );
 
         /*
-         * 9. Verify the digital signature using the
-         *    institution's public key.
-         *
-         *    During issuance, the dataHash was signed.
+         * 6. Verify digital signature.
          */
         boolean signatureValid =
                 digitalSignatureService.verify(
@@ -170,7 +226,7 @@ public class VerificationService {
                 );
 
         /*
-         * 10. Check revocation record.
+         * 7. Check revocation.
          */
         boolean revoked =
                 revocationRecordRepository
@@ -180,7 +236,7 @@ public class VerificationService {
                         .isPresent();
 
         /*
-         * 11. Determine verification result.
+         * 8. Determine result.
          */
         String result;
 
@@ -209,7 +265,13 @@ public class VerificationService {
         }
 
         /*
-         * 12. Save verification log.
+         * 9. Save verification log.
+         *
+         * Authenticated verification:
+         * verifier = authenticated User
+         *
+         * Public verification:
+         * verifier = null
          */
         LocalDateTime verificationTime =
                 LocalDateTime.now();
@@ -217,34 +279,15 @@ public class VerificationService {
         VerificationLog verificationLog =
                 new VerificationLog();
 
-        verificationLog.setCredential(
-                credential
-        );
+        verificationLog.setCredential(credential);
+        verificationLog.setVerifier(verifier);
+        verificationLog.setResult(result);
+        verificationLog.setVerificationTime(verificationTime);
+        verificationLog.setVerificationIp(verificationIp);
 
-        verificationLog.setVerifier(
-                verifier
-        );
+        verificationLogRepository.save(verificationLog);
 
-        verificationLog.setResult(
-                result
-        );
-
-        verificationLog.setVerificationTime(
-                verificationTime
-        );
-
-        verificationLog.setVerificationIp(
-                verificationIp
-        );
-
-        verificationLogRepository.save(
-                verificationLog
-        );
-
-        /*
-         * 13. Build response.
-         */
-        return toResponse(
+        return new VerificationOutcome(
                 credential,
                 result,
                 integrityValid,
@@ -254,42 +297,28 @@ public class VerificationService {
         );
     }
 
+    /*
+     * BUILD AUTHENTICATED RESPONSE
+     */
     private VerificationResponse toResponse(
-            Credential credential,
-            String result,
-            boolean integrityValid,
-            boolean signatureValid,
-            boolean revoked,
-            LocalDateTime verificationTime) {
+            VerificationOutcome outcome) {
+
+        Credential credential = outcome.credential;
+
+        Student student = credential.getStudent();
+        Institution institution = credential.getInstitution();
 
         VerificationResponse response =
                 new VerificationResponse();
-
-        Student student =
-                credential.getStudent();
-
-        Institution institution =
-                credential.getInstitution();
 
         response.setCredentialCode(
                 credential.getCredentialCode()
         );
 
-        response.setResult(
-                result
-        );
-
-        response.setIntegrityValid(
-                integrityValid
-        );
-
-        response.setSignatureValid(
-                signatureValid
-        );
-
-        response.setRevoked(
-                revoked
-        );
+        response.setResult(outcome.result);
+        response.setIntegrityValid(outcome.integrityValid);
+        response.setSignatureValid(outcome.signatureValid);
+        response.setRevoked(outcome.revoked);
 
         response.setCredentialStatus(
                 credential.getStatus()
@@ -340,9 +369,105 @@ public class VerificationService {
         );
 
         response.setVerificationTime(
-                verificationTime
+                outcome.verificationTime
         );
 
         return response;
+    }
+
+    /*
+     * BUILD LIMITED PUBLIC RESPONSE
+     */
+    private PublicVerificationResponse toPublicResponse(
+            VerificationOutcome outcome) {
+
+        Credential credential = outcome.credential;
+
+        Student student = credential.getStudent();
+        Institution institution = credential.getInstitution();
+
+        PublicVerificationResponse response =
+                new PublicVerificationResponse();
+
+        response.setCredentialCode(
+                credential.getCredentialCode()
+        );
+
+        response.setResult(outcome.result);
+        response.setIntegrityValid(outcome.integrityValid);
+        response.setSignatureValid(outcome.signatureValid);
+        response.setRevoked(outcome.revoked);
+
+        response.setCredentialStatus(
+                credential.getStatus()
+        );
+
+        // Student information
+        response.setStudentName(
+                student.getUser().getFullName()
+        );
+
+        response.setStudentNumber(
+                student.getStudentNumber()
+        );
+
+        response.setCourse(
+                student.getCourse()
+        );
+
+        response.setAcademicYear(
+                student.getAcademicYear()
+        );
+
+        response.setInstitutionName(
+                institution.getInstitutionName()
+        );
+
+        response.setInstitutionCode(
+                institution.getInstitutionCode()
+        );
+
+        response.setCredentialType(
+                credential.getCredentialType()
+        );
+
+        response.setIssuedAt(
+                credential.getIssuedAt()
+        );
+
+        response.setVerificationTime(
+                outcome.verificationTime
+        );
+
+        return response;
+    }
+
+    /*
+     * INTERNAL VERIFICATION RESULT
+     */
+    private static class VerificationOutcome {
+
+        private final Credential credential;
+        private final String result;
+        private final boolean integrityValid;
+        private final boolean signatureValid;
+        private final boolean revoked;
+        private final LocalDateTime verificationTime;
+
+        private VerificationOutcome(
+                Credential credential,
+                String result,
+                boolean integrityValid,
+                boolean signatureValid,
+                boolean revoked,
+                LocalDateTime verificationTime) {
+
+            this.credential = credential;
+            this.result = result;
+            this.integrityValid = integrityValid;
+            this.signatureValid = signatureValid;
+            this.revoked = revoked;
+            this.verificationTime = verificationTime;
+        }
     }
 }

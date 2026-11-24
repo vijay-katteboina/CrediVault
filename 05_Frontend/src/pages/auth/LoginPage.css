@@ -1,0 +1,85 @@
+.login-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: var(--cv-space-8) var(--cv-space-4);
+  background:
+    radial-gradient(ellipse at top, var(--cv-color-info-surface), transparent 55%),
+    var(--cv-color-background);
+}
+
+.login-card {
+  width: min(100%, 28rem);
+  padding: clamp(var(--cv-space-6), 6vw, var(--cv-space-8));
+}
+
+.login-header {
+  display: grid;
+  justify-items: center;
+  gap: var(--cv-space-2);
+  margin-bottom: var(--cv-space-8);
+  text-align: center;
+}
+
+.login-brand-mark {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  margin-bottom: var(--cv-space-2);
+  border-radius: var(--cv-radius-lg);
+  background: var(--cv-color-primary);
+  color: var(--cv-color-surface);
+  font-size: var(--cv-text-lg);
+  font-weight: var(--cv-weight-extrabold);
+}
+
+.login-header h1 {
+  margin: 0;
+  font-size: var(--cv-text-3xl);
+}
+
+.login-header p {
+  margin: 0;
+  color: var(--cv-color-muted);
+  font-size: var(--cv-text-sm);
+}
+
+.login-form {
+  display: grid;
+  gap: var(--cv-space-4);
+}
+
+.login-alert {
+  align-items: center;
+}
+
+.login-submit {
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: var(--cv-space-2);
+}
+
+.login-security-note {
+  margin: var(--cv-space-6) 0 0;
+  color: var(--cv-color-muted);
+  font-size: var(--cv-text-xs);
+  line-height: var(--cv-line-relaxed);
+  text-align: center;
+}
+
+.login-footer {
+  margin-top: var(--cv-space-4);
+  text-align: center;
+}
+
+.login-footer a {
+  font-size: var(--cv-text-sm);
+  font-weight: var(--cv-weight-semibold);
+}
+
+@media (max-width: 40rem) {
+  .login-page {
+    padding: var(--cv-space-4);
+  }
+}

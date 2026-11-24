@@ -2,6 +2,14 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import RoleLayout from '../../components/layout/RoleLayout'
+import {
+  Button,
+  DataTable,
+  EmptyState,
+  ErrorState,
+  Spinner,
+  StatusBadge,
+} from '../../components/ui'
 import './VerifierHistory.css'
 
 const VERIFIER_NAV_ITEMS = [
@@ -176,14 +184,14 @@ function VerifierHistory() {
             </p>
           </div>
 
-          <button
-            type="button"
-            className="history-refresh-button"
+          <Button
+            variant="secondary"
             onClick={handleRefresh}
-            disabled={loading}
+            loading={loading}
+            loadingLabel="Refreshing..."
           >
-            {loading ? 'Refreshing...' : 'Refresh'}
-          </button>
+            Refresh
+          </Button>
         </section>
 
         <section className="history-records-section">
@@ -202,37 +210,38 @@ function VerifierHistory() {
           </div>
 
           {loading ? (
-            <div className="history-message">
-              <div className="history-spinner" />
-              <p>Loading verification history...</p>
-            </div>
+            <Spinner
+              label="Loading verification history..."
+              className="history-message"
+            />
           ) : error ? (
-            <div className="history-message history-error" role="alert">
-              <h3>Unable to Load History</h3>
-              <p>{error}</p>
-
-              <button type="button" onClick={handleRefresh}>
-                Try Again
-              </button>
-            </div>
+            <ErrorState
+              title="Unable to Load History"
+              description={error}
+              action={(
+                <Button variant="secondary" onClick={handleRefresh}>
+                  Try Again
+                </Button>
+              )}
+              className="history-message history-error"
+            />
           ) : history.length === 0 ? (
-            <div className="history-message">
-              <div className="history-empty-icon">↻</div>
-              <h3>No Verification Records</h3>
-              <p>
-                No verification activity was returned for this account.
-              </p>
-
-              <button
-                type="button"
-                onClick={() => navigate('/verifier')}
-              >
-                Verify a Credential
-              </button>
-            </div>
+            <EmptyState
+              title="No Verification Records"
+              description="No verification activity was returned for this account."
+              action={(
+                <Button onClick={() => navigate('/verifier')}>
+                  Verify a Credential
+                </Button>
+              )}
+              className="history-message"
+            />
           ) : (
-            <div className="history-table-wrapper">
-              <table className="history-table">
+            <DataTable
+              wrapperClassName="history-table-wrapper"
+              className="history-table"
+              caption="Credential verification history"
+            >
                 <thead>
                   <tr>
                     <th>Record</th>
@@ -264,19 +273,17 @@ function VerifierHistory() {
                       <td>{record.credentialType || '—'}</td>
 
                       <td>
-                        <span
+                        <StatusBadge
+                          status={formatResult(record.result)}
                           className={`history-result-badge ${getResultClass(record.result)}`}
-                        >
-                          {formatResult(record.result)}
-                        </span>
+                        />
                       </td>
 
                       <td>
-                        <span
+                        <StatusBadge
+                          status={record.credentialStatus || 'UNKNOWN'}
                           className={`history-status-badge ${getCredentialStatusClass(record.credentialStatus)}`}
-                        >
-                          {record.credentialStatus || 'UNKNOWN'}
-                        </span>
+                        />
                       </td>
 
                       <td>
@@ -287,8 +294,7 @@ function VerifierHistory() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
-            </div>
+            </DataTable>
           )}
 
           {!loading && !error && history.length > 0 && (

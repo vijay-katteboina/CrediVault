@@ -4,6 +4,8 @@ import DatePicker from 'react-datepicker'
 
 import 'react-datepicker/dist/react-datepicker.css'
 import api from '../../services/api'
+import AdminLayout from '../../components/layout/AdminLayout'
+import { Alert, Button, DataTable, Modal, Pagination } from '../../components/ui'
 import './AuditManagement.css'
 
 const PAGE_SIZE = 20
@@ -243,68 +245,29 @@ function AuditManagement() {
   }
 
   return (
-    <main className="audit-page">
+    <AdminLayout
+      activeKey="audit"
+      onLogout={handleLogout}
+      headerActions={(
+        <Button
+          variant="secondary"
+          onClick={refreshAuditLogs}
+          disabled={loading}
+          loading={refreshing}
+          loadingLabel="Refreshing..."
+        >
+          Refresh Audit Logs
+        </Button>
+      )}
+    >
+      <div className="audit-page">
       <div className="audit-container">
-
-        {/* Top navigation */}
-        <header className="audit-topbar">
-          <div>
-            <p className="audit-brand">CrediVault</p>
-
-            <span className="audit-role-badge">
-              ADMINISTRATOR
-            </span>
-          </div>
-
-          <div className="audit-topbar-actions">
-            <button
-              type="button"
-              className="audit-dashboard-btn"
-              onClick={() => navigate('/admin')}
-            >
-              Dashboard
-            </button>
-
-            <button
-              type="button"
-              className="audit-logout-btn"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
-          </div>
-        </header>
-
-        {/* Page heading */}
-        <section className="audit-header">
-          <div>
-            <p className="audit-kicker">
-              SYSTEM ADMINISTRATION
-            </p>
-
-            <h1>Audit Management</h1>
-
-            <p>
-              Monitor administrative operations and maintain
-              a transparent record of CrediVault activities.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className="audit-refresh-btn"
-            onClick={refreshAuditLogs}
-            disabled={loading || refreshing}
-          >
-            {refreshing ? 'Refreshing...' : '↻ Refresh Audit Logs'}
-          </button>
-        </section>
 
         {/* Error */}
         {error && (
-          <div className="audit-error" role="alert">
+          <Alert variant="danger" className="audit-error">
             {error}
-          </div>
+          </Alert>
         )}
 
         {/* Summary */}
@@ -496,8 +459,11 @@ function AuditManagement() {
           </form>
 
           {/* Audit table */}
-          <div className="audit-table-wrapper">
-            <table className="audit-table">
+          <DataTable
+            wrapperClassName="audit-table-wrapper"
+            className="audit-table"
+            caption="Administrative audit records"
+          >
 
               <thead>
                 <tr>
@@ -580,84 +546,40 @@ function AuditManagement() {
                 )}
               </tbody>
 
-            </table>
-          </div>
+          </DataTable>
 
           {/* Pagination */}
-          <div className="audit-pagination">
-
-            <span>
-              Showing {auditLogs.length} of {totalElements} events
-            </span>
-
-            <div>
-              <button
-                type="button"
-                onClick={() =>
-                  setPage((current) => Math.max(0, current - 1))
-                }
-                disabled={page === 0 || loading}
-              >
-                Previous
-              </button>
-
-              <span>
-                Page {page + 1} of {totalPages}
-              </span>
-
-              <button
-                type="button"
-                onClick={() =>
-                  setPage((current) =>
-                    Math.min(totalPages - 1, current + 1)
-                  )
-                }
-                disabled={page + 1 >= totalPages || loading}
-              >
-                Next
-              </button>
-            </div>
-
-          </div>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            disabled={loading}
+            label="Audit record pages"
+            className="audit-pagination"
+            summary={`Showing ${auditLogs.length} of ${totalElements} events`}
+            onPageChange={setPage}
+          />
 
         </section>
 
         {/* Audit details modal */}
         {(detailsLoading || selectedLog) && (
-          <div
-            className="audit-modal-overlay"
-            onClick={() => {
+          <Modal
+            open
+            onClose={() => {
               if (!detailsLoading) setSelectedLog(null)
             }}
+            title="Audit Event Details"
+            description="This is a read-only record of a CrediVault event."
+            dismissible={!detailsLoading}
+            closeOnBackdrop
+            className="audit-modal"
           >
-            <div
-              className="audit-modal"
-              onClick={(event) => event.stopPropagation()}
-            >
               {detailsLoading ? (
                 <p className="audit-modal-loading">
                   Loading audit details...
                 </p>
               ) : (
                 <>
-                  <div className="audit-modal-header">
-                    <div>
-                      <p className="audit-kicker">
-                        SYSTEM ACTIVITY RECORD
-                      </p>
-
-                      <h2>Audit Event Details</h2>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => setSelectedLog(null)}
-                      aria-label="Close audit details"
-                    >
-                      ×
-                    </button>
-                  </div>
-
                   <div className="audit-detail-grid">
 
                     <div>
@@ -726,26 +648,14 @@ function AuditManagement() {
                     Audit records cannot be modified or deleted.
                   </div>
 
-                  <div className="audit-modal-footer">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedLog(null)}
-                    >
-                      Close
-                    </button>
-                  </div>
                 </>
               )}
-            </div>
-          </div>
+          </Modal>
         )}
 
-        <footer className="audit-footer">
-          CrediVault · Digital Academic Credential Issuance and Verification System
-        </footer>
-
       </div>
-    </main>
+      </div>
+    </AdminLayout>
   )
 }
 

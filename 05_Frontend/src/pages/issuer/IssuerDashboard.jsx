@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../../services/api'
 import StudentManagement from './StudentManagement'
+import { Alert, Button, Input, Select, StatusBadge, Textarea } from '../../components/ui'
 import './IssuerDashboard.css'
 
 const INITIAL_FORM_DATA = {
@@ -543,7 +544,7 @@ const handleRevokeCredential = async (event) => {
                       Select Registered Student
                     </label>
 
-                    <select
+                    <Select
                       id="studentId"
                       name="studentId"
                       value={formData.studentId}
@@ -566,7 +567,7 @@ const handleRevokeCredential = async (event) => {
                           {student.course})
                         </option>
                       ))}
-                    </select>
+                    </Select>
 
                     <small>
                       Students are loaded from your institution's registered
@@ -575,14 +576,14 @@ const handleRevokeCredential = async (event) => {
                   </div>
 
                   {studentsError && (
-                    <div className="issuer-student-status" role="status">
+                    <Alert variant="info" className="issuer-student-status">
                       {studentsError}
-                    </div>
+                    </Alert>
                   )}
 
                   <div className="issuer-form-group issuer-readonly-group">
                     <label htmlFor="studentNumber">Student Number</label>
-                    <input
+                    <Input
                       id="studentNumber"
                       type="text"
                       value={selectedStudent?.studentNumber || ''}
@@ -593,7 +594,7 @@ const handleRevokeCredential = async (event) => {
 
                   <div className="issuer-form-group issuer-readonly-group">
                     <label htmlFor="studentName">Student Name</label>
-                    <input
+                    <Input
                       id="studentName"
                       type="text"
                       value={selectedStudent?.fullName || ''}
@@ -604,7 +605,7 @@ const handleRevokeCredential = async (event) => {
 
                   <div className="issuer-form-group issuer-readonly-group">
                     <label htmlFor="course">Course</label>
-                    <input
+                    <Input
                       id="course"
                       type="text"
                       value={selectedStudent?.course || ''}
@@ -615,7 +616,7 @@ const handleRevokeCredential = async (event) => {
 
                   <div className="issuer-form-group issuer-readonly-group">
                     <label htmlFor="academicYear">Academic Year</label>
-                    <input
+                    <Input
                       id="academicYear"
                       type="text"
                       value={selectedStudent?.academicYear || ''}
@@ -632,7 +633,7 @@ const handleRevokeCredential = async (event) => {
                 <div className="issuer-form-grid">
                   <div className="issuer-form-group">
                     <label htmlFor="credentialType">Credential Type</label>
-                    <select
+                    <Select
                       id="credentialType"
                       name="credentialType"
                       value={formData.credentialType}
@@ -648,12 +649,12 @@ const handleRevokeCredential = async (event) => {
                       <option value="Completion Certificate">
                         Completion Certificate
                       </option>
-                    </select>
+                    </Select>
                   </div>
 
                   <div className="issuer-form-group">
                     <label htmlFor="cgpa">CGPA</label>
-                    <input
+                    <Input
                       id="cgpa"
                       name="cgpa"
                       type="number"
@@ -669,7 +670,7 @@ const handleRevokeCredential = async (event) => {
 
                   <div className="issuer-form-group">
                     <label htmlFor="completionYear">Completion Year</label>
-                    <input
+                    <Input
                       id="completionYear"
                       name="completionYear"
                       type="number"
@@ -686,15 +687,14 @@ const handleRevokeCredential = async (event) => {
               </div>
 
               {error && (
-                <div className="issuer-error" role="alert">
+                <Alert variant="danger" className="issuer-error">
                   {error}
-                </div>
+                </Alert>
               )}
 
               <div className="issuer-form-actions">
-                <button
-                  type="button"
-                  className="issuer-cancel-button"
+                <Button
+                  variant="secondary"
                   onClick={() => {
                     setFormData({ ...INITIAL_FORM_DATA })
                     setError('')
@@ -702,17 +702,18 @@ const handleRevokeCredential = async (event) => {
                   disabled={loading}
                 >
                   Clear Form
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="submit"
-                  className="issuer-submit-button"
+                  loading={loading}
+                  loadingLabel="Issuing Credential..."
                   disabled={
-                    loading || studentsLoading || students.length === 0
+                    studentsLoading || students.length === 0
                   }
                 >
-                  {loading ? 'Issuing Credential...' : 'Issue Credential'}
-                </button>
+                  Issue Credential
+                </Button>
               </div>
 
               <p className="issuer-security-note">
@@ -741,9 +742,10 @@ const handleRevokeCredential = async (event) => {
                   </p>
                 </div>
 
-                <span className="issued-status">
-                  {issuedCredential.status || 'ISSUED'}
-                </span>
+                <StatusBadge
+                  status={issuedCredential.status || 'ISSUED'}
+                  className="issued-status"
+                />
               </div>
 
               <div className="issued-details-grid">
@@ -796,13 +798,12 @@ const handleRevokeCredential = async (event) => {
               </div>
 
               {issuedCredential.credentialCode && (
-                <button
-                  type="button"
-                  className="issuer-copy-button"
+                <Button
+                  variant="secondary"
                   onClick={handleCopyCode}
                 >
                   Copy Credential Code
-                </button>
+                </Button>
               )}
 
               <p className="issuer-issued-note">
@@ -844,7 +845,7 @@ const handleRevokeCredential = async (event) => {
                     <label htmlFor="revocationCredentialCode">
                       Credential Code
                     </label>
-                    <input
+                    <Input
                       id="revocationCredentialCode"
                       name="credentialCode"
                       type="text"
@@ -863,7 +864,7 @@ const handleRevokeCredential = async (event) => {
                     <label htmlFor="revocationReason">
                       Reason for Revocation
                     </label>
-                    <textarea
+                    <Textarea
                       id="revocationReason"
                       name="reason"
                       value={revocationForm.reason}
@@ -881,15 +882,14 @@ const handleRevokeCredential = async (event) => {
               </div>
 
               {revocationError && (
-                <div className="issuer-error" role="alert">
+                <Alert variant="danger" className="issuer-error">
                   {revocationError}
-                </div>
+                </Alert>
               )}
 
               <div className="issuer-form-actions">
-                <button
-                  type="button"
-                  className="issuer-cancel-button"
+                <Button
+                  variant="secondary"
                   disabled={revocationLoading}
                   onClick={() => {
                     setRevocationForm({ ...INITIAL_REVOCATION_FORM })
@@ -898,17 +898,16 @@ const handleRevokeCredential = async (event) => {
                   }}
                 >
                   Clear Form
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="submit"
-                  className="issuer-revoke-button"
-                  disabled={revocationLoading}
+                  variant="danger"
+                  loading={revocationLoading}
+                  loadingLabel="Revoking Credential..."
                 >
-                  {revocationLoading
-                    ? 'Revoking Credential...'
-                    : 'Revoke Credential'}
-                </button>
+                  Revoke Credential
+                </Button>
               </div>
 
               <p className="issuer-security-note">
@@ -935,9 +934,10 @@ const handleRevokeCredential = async (event) => {
                   </p>
                 </div>
 
-                <span className="revocation-status">
-                  {revocationResult.status || 'REVOKED'}
-                </span>
+                <StatusBadge
+                  status={revocationResult.status || 'REVOKED'}
+                  className="revocation-status"
+                />
               </div>
 
               <div className="issued-details-grid">

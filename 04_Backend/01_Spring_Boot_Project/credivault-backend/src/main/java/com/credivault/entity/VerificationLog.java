@@ -24,8 +24,8 @@ public class VerificationLog {
     @JoinColumn(name = "credential_id", nullable = false)
     private Credential credential;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "verifier_id", nullable = false)
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "verifier_id", nullable = true)
     private User verifier;
 
     @Column(name = "result", nullable = false, length = 30)

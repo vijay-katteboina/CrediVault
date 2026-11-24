@@ -1,6 +1,15 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import api from '../../services/api'
+import {
+  Alert,
+  Button,
+  Card,
+  FormField,
+  Input,
+  Select,
+} from '../../components/ui'
+import './LoginPage.css'
 
 const ROLE_OPTIONS = [
   {
@@ -14,11 +23,6 @@ const ROLE_OPTIONS = [
     description: 'Issue academic credentials',
   },
   {
-    value: 'VERIFIER',
-    label: 'Verifier',
-    description: 'Verify credential authenticity',
-  },
-  {
     value: 'ADMIN',
     label: 'Administrator',
     description: 'Manage the CrediVault platform',
@@ -28,7 +32,6 @@ const ROLE_OPTIONS = [
 const ROLE_ROUTES = {
   STUDENT: '/student',
   ISSUER: '/issuer',
-  VERIFIER: '/verifier',
   ADMIN: '/admin',
 }
 
@@ -55,10 +58,8 @@ function LoginPage() {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-
     setError('')
 
-    // Require the user to select an account type.
     if (!selectedRole) {
       setError('Please select your account type before signing in.')
       return
@@ -71,16 +72,15 @@ function LoginPage() {
       const response = await api.post('/auth/login', formData)
 
       const { token, role: returnedRole } = response.data
-
       const actualRole = String(returnedRole || '').toUpperCase()
 
-      // Confirm that the server returned a valid token and role.
+      // Validate the authentication response.
       if (!token || !ROLE_ROUTES[actualRole]) {
         setError('The server returned an invalid login response.')
         return
       }
 
-      // The role selected on the form must match the authenticated account.
+      // Verify that the selected role matches the authenticated account.
       if (actualRole !== selectedRole) {
         localStorage.removeItem('credivaultToken')
         localStorage.removeItem('credivaultRole')
@@ -94,19 +94,23 @@ function LoginPage() {
           selectedRole
 
         setError(
-          `These credentials belong to a ${actualRoleLabel} account, ` +
-          `but you selected ${selectedRoleLabel}. ` +
-          `Please select ${actualRoleLabel} and try again.`
+          'These credentials belong to a ' +
+          actualRoleLabel +
+          ' account, but you selected ' +
+          selectedRoleLabel +
+          '. Please select ' +
+          actualRoleLabel +
+          ' and try again.'
         )
 
         return
       }
 
-      // Store the authenticated session only after the role matches.
+      // Store the authenticated session.
       localStorage.setItem('credivaultToken', token)
       localStorage.setItem('credivaultRole', actualRole)
 
-      // Navigate to the dashboard associated with the returned role.
+      // Navigate to the corresponding dashboard.
       navigate(ROLE_ROUTES[actualRole], { replace: true })
     } catch (err) {
       const message =
@@ -121,11 +125,12 @@ function LoginPage() {
 
   return (
     <main className="login-page">
-      <section className="login-card">
+      <Card as="section" className="login-card" aria-labelledby="login-title">
 
         {/* CrediVault branding */}
         <div className="login-header">
-          <h1>CrediVault</h1>
+          <div className="login-brand-mark" aria-hidden="true">CV</div>
+          <h1 id="login-title">CrediVault</h1>
           <p>Digital Academic Credential Platform</p>
         </div>
 
@@ -133,11 +138,17 @@ function LoginPage() {
         <form onSubmit={handleSubmit} className="login-form">
 
           {/* Account type selection */}
-          <div className="form-group">
-            <label htmlFor="role">Sign in as</label>
-
-            <select
-              id="role"
+          <FormField
+            id="role"
+            label="Sign in as"
+            required
+            hint={selectedRole
+              ? ROLE_OPTIONS.find(
+                (option) => option.value === selectedRole
+              )?.description
+              : undefined}
+          >
+            <Select
               name="role"
               value={selectedRole}
               onChange={(event) => {
@@ -146,39 +157,22 @@ function LoginPage() {
               }}
               disabled={loading}
               required
-              className="login-role-select"
             >
               <option value="" disabled>
                 Select your account type
               </option>
 
               {ROLE_OPTIONS.map((option) => (
-                <option
-                  key={option.value}
-                  value={option.value}
-                >
+                <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
-            </select>
-
-            {selectedRole && (
-              <small className="role-description">
-                {
-                  ROLE_OPTIONS.find(
-                    (option) => option.value === selectedRole
-                  )?.description
-                }
-              </small>
-            )}
-          </div>
+            </Select>
+          </FormField>
 
           {/* Email */}
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-
-            <input
-              id="email"
+          <FormField id="email" label="Email" required>
+            <Input
               name="email"
               type="email"
               value={formData.email}
@@ -186,15 +180,13 @@ function LoginPage() {
               placeholder="Enter your email"
               autoComplete="username"
               required
+              disabled={loading}
             />
-          </div>
+          </FormField>
 
           {/* Password */}
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-
-            <input
-              id="password"
+          <FormField id="password" label="Password" required>
+            <Input
               name="password"
               type="password"
               value={formData.password}
@@ -202,32 +194,47 @@ function LoginPage() {
               placeholder="Enter your password"
               autoComplete="current-password"
               required
+              disabled={loading}
             />
+          </FormField>
+
+          {/* Forgot password */}
+          <div className="login-forgot-password">
+            <Link to="/forgot-password">
+              Forgot Password?
+            </Link>
           </div>
 
           {/* Error message */}
           {error && (
-            <p className="login-error" role="alert">
+            <Alert variant="danger" className="login-alert">
               {error}
-            </p>
+            </Alert>
           )}
 
           {/* Submit button */}
-          <button
+          <Button
             type="submit"
-            className="login-button"
-            disabled={loading}
+            className="login-submit"
+            loading={loading}
+            loadingLabel="Signing in..."
           >
-            {loading ? 'Signing in...' : 'Sign In'}
-          </button>
+            Sign In
+          </Button>
 
         </form>
 
         <p className="login-security-note">
-          Secure access for students, issuers, verifiers and administrators.
+          Secure access for students, issuers and administrators.
+          Public credential verification requires no login.
         </p>
 
-      </section>
+        {/* Home navigation */}
+        <div className="login-footer">
+          <Link to="/">Back to Home</Link>
+        </div>
+
+      </Card>
     </main>
   )
 }

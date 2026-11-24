@@ -29,6 +29,9 @@ public class User {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    @Column(name = "token_version", nullable = false)
+    private Integer tokenVersion = 0;
+
     @Column(name = "role", nullable = false, length = 20)
     private String role;
 
@@ -42,6 +45,9 @@ public class User {
     @ManyToOne(optional = true)
     @JoinColumn(name = "institution_id")
     private Institution institution;
+
+    @Column(name = "must_change_password", nullable = false)
+    private boolean mustChangePassword = false;
 
     public User() {
     }
@@ -108,5 +114,21 @@ public class User {
 
     public void setInstitution(Institution institution) {
         this.institution = institution;
+    }
+
+    public Integer getTokenVersion() {
+    return tokenVersion;
+    }
+
+    public void setTokenVersion(Integer tokenVersion) {
+    this.tokenVersion = tokenVersion;
+    }
+
+    public boolean isMustChangePassword() {
+        return mustChangePassword;
+    }
+
+    public void setMustChangePassword(boolean mustChangePassword) {
+        this.mustChangePassword = mustChangePassword;
     }
 }

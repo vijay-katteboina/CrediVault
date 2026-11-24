@@ -4,7 +4,11 @@ import com.credivault.dto.AuthResponse;
 import com.credivault.dto.LoginRequest;
 import com.credivault.dto.RegisterRequest;
 import com.credivault.dto.UserProfileResponse;
+import com.credivault.dto.ForgotPasswordRequest;
+import com.credivault.dto.ResetPasswordRequest;
+
 import com.credivault.entity.User;
+
 import com.credivault.service.JwtService;
 import com.credivault.service.UserService;
 
@@ -14,11 +18,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -80,9 +87,17 @@ public class AuthController {
                         )
                 );
 
+        if (user.isMustChangePassword()) {
+            throw new ResponseStatusException(
+                    HttpStatus.FORBIDDEN,
+                    "Password change required"
+            );
+        }
+
         String token = jwtService.generateToken(
                 user.getEmail(),
-                user.getRole()
+                user.getRole(),
+                user.getTokenVersion()
         );
 
         AuthResponse response = new AuthResponse(
@@ -119,5 +134,40 @@ public class AuthController {
                 );
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Request a password reset email.
+     *
+     * Always returns a generic response to prevent
+     * email account enumeration.
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+
+        userService.requestPasswordReset(request.getEmail());
+
+        return ResponseEntity.ok(
+                "If an account exists with this email, " +
+                "a password reset link will be sent."
+        );
+    }
+
+    /**
+     * Reset password using a valid reset token.
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+
+        userService.resetPassword(
+                request.getToken(),
+                request.getNewPassword()
+        );
+
+        return ResponseEntity.ok(
+                "Password has been reset successfully."
+        );
     }
 }

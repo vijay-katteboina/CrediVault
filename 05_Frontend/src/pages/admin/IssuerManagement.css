@@ -1,14 +1,14 @@
 .admin-issuers-page {
-  min-height: 100vh;
-  padding: 38px 28px;
-  background: #f4f7fb;
-  color: #111827;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  color: inherit;
 }
 
 .admin-issuers-container {
   width: 100%;
-  max-width: 1450px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
 }
 
 .admin-issuers-header,
@@ -38,8 +38,8 @@
   margin-top: 8px;
   padding: 6px 11px;
   border-radius: 20px;
-  background: #e0e7ff;
-  color: #3730a3;
+  background: var(--cv-color-info-surface);
+  color: var(--cv-color-primary);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 1px;
@@ -52,7 +52,7 @@
 .admin-issuers-header-actions button,
 .issuers-secondary-button {
   padding: 13px 19px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--cv-color-border);
   border-radius: 10px;
   font-size: 14px;
   font-weight: 700;
@@ -60,13 +60,13 @@
 }
 
 .issuers-secondary-button {
-  background: white;
-  color: #111827;
+  background: var(--cv-color-surface);
+  color: var(--cv-color-text);
 }
 
 .issuers-logout-button {
-  background: #111827;
-  color: white;
+  background: var(--cv-color-text);
+  color: var(--cv-color-surface);
 }
 
 .admin-issuers-heading {
@@ -82,13 +82,13 @@
 
 .admin-issuers-heading p:last-child,
 .issuers-section-title p:last-child {
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 15px;
 }
 
 .issuers-kicker {
   margin: 0;
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 1.5px;
@@ -108,14 +108,14 @@
 
 .issuers-summary-card {
   padding: 24px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--cv-color-border);
   border-radius: 15px;
-  background: white;
+  background: var(--cv-color-surface);
 }
 
 .issuers-summary-card span {
   display: block;
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 14px;
 }
 
@@ -135,25 +135,25 @@
 }
 
 .issuers-success-message {
-  border: 1px solid #a7f3d0;
-  background: #dcfce7;
-  color: #166534;
+  border: 1px solid var(--cv-status-active-border);
+  background: var(--cv-status-active-surface);
+  color: var(--cv-status-active-text);
 }
 
 .issuers-error-message {
-  border: 1px solid #fecaca;
-  background: #fee2e2;
-  color: #991b1b;
+  border: 1px solid var(--cv-color-danger-border);
+  background: var(--cv-color-danger-surface);
+  color: var(--cv-color-danger);
 }
 
 .issuers-filter-card,
 .issuers-table-card {
   margin-bottom: 27px;
   padding: 29px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--cv-color-border);
   border-radius: 17px;
-  background: white;
-  box-shadow: 0 5px 20px rgba(15, 23, 42, 0.025);
+  background: var(--cv-color-surface);
+  box-shadow: var(--cv-shadow-sm);
 }
 
 .issuers-section-title h2,
@@ -183,10 +183,10 @@
   width: 100%;
   height: 52px;
   padding: 0 14px;
-  border: 1.5px solid #cbd5e1;
+  border: 1.5px solid var(--cv-status-inactive-border);
   border-radius: 9px;
-  background: white;
-  color: #111827;
+  background: var(--cv-color-surface);
+  color: var(--cv-color-text);
   font: inherit;
   font-size: 16px;
 }
@@ -199,8 +199,8 @@
 
 .issuers-filter-group input:focus,
 .issuers-filter-group select:focus {
-  outline: 3px solid #c7d2fe;
-  border-color: #4338ca;
+  outline: 3px solid var(--cv-color-info-border);
+  border-color: var(--cv-color-primary);
 }
 
 .issuers-filter-actions {
@@ -219,21 +219,21 @@
 
 .issuers-search-button {
   border: none;
-  background: #3730a3;
-  color: white;
+  background: var(--cv-color-primary);
+  color: var(--cv-color-surface);
 }
 
 .issuers-clear-button {
-  border: 1px solid #e2e8f0;
-  background: white;
-  color: #111827;
+  border: 1px solid var(--cv-color-border);
+  background: var(--cv-color-surface);
+  color: var(--cv-color-text);
 }
 
 .issuers-record-count {
   padding: 9px 14px;
   border-radius: 25px;
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--cv-color-border);
+  color: var(--cv-color-secondary);
   font-size: 12px;
   font-weight: 800;
 }
@@ -254,8 +254,8 @@
 
 .admin-issuers-table th {
   padding: 17px 14px;
-  background: #f8fafc;
-  color: #64748b;
+  background: var(--cv-color-surface-subtle);
+  color: var(--cv-color-muted);
   font-size: 13px;
   text-align: left;
   white-space: nowrap;
@@ -263,7 +263,7 @@
 
 .admin-issuers-table td {
   padding: 19px 14px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--cv-color-border);
   font-size: 13px;
 }
 
@@ -278,7 +278,7 @@
 }
 
 .issuers-name-cell span {
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 12px;
 }
 
@@ -291,13 +291,13 @@
 }
 
 .issuers-status-badge.active {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--cv-status-active-surface);
+  color: var(--cv-status-active-text);
 }
 
 .issuers-status-badge.inactive {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--cv-color-danger-surface);
+  color: var(--cv-color-danger);
 }
 
 .issuers-action-buttons {
@@ -307,28 +307,28 @@
 
 .issuers-action-buttons button {
   padding: 9px 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--cv-color-border);
   border-radius: 8px;
-  background: white;
+  background: var(--cv-color-surface);
   font-size: 13px;
   font-weight: 750;
   cursor: pointer;
 }
 
 .issuers-view-button {
-  color: #3730a3;
+  color: var(--cv-color-primary);
 }
 
 .issuers-status-button.deactivate {
-  border-color: #fecaca;
-  background: #fff1f2;
-  color: #991b1b;
+  border-color: var(--cv-color-danger-border);
+  background: var(--cv-color-danger-surface);
+  color: var(--cv-color-danger);
 }
 
 .issuers-status-button.activate {
-  border-color: #a7f3d0;
-  background: #ecfdf5;
-  color: #166534;
+  border-color: var(--cv-status-active-border);
+  background: var(--cv-status-active-surface);
+  color: var(--cv-status-active-text);
 }
 
 .issuers-action-buttons button:disabled {
@@ -338,37 +338,17 @@
 
 .issuers-empty-state {
   padding: 45px !important;
-  color: #64748b;
+  color: var(--cv-color-muted);
   text-align: center;
 }
 
 .issuers-pagination {
-  gap: 20px;
   margin-top: 24px;
 }
 
 .issuers-pagination > span {
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 14px;
-}
-
-.issuers-pagination div {
-  display: flex;
-  gap: 10px;
-}
-
-.issuers-pagination button {
-  padding: 11px 16px;
-  border: 1px solid #e2e8f0;
-  border-radius: 9px;
-  background: white;
-  font-weight: 750;
-  cursor: pointer;
-}
-
-.issuers-pagination button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 .issuers-info-note {
@@ -377,10 +357,10 @@
   gap: 7px;
   margin: 5px 0 27px;
   padding: 17px 20px;
-  border: 1px solid #bfdbfe;
+  border: 1px solid var(--cv-color-info-border);
   border-radius: 11px;
-  background: #eff6ff;
-  color: #1e3a8a;
+  background: var(--cv-color-info-surface);
+  color: var(--cv-color-info-text);
   font-size: 14px;
   line-height: 1.6;
 }
@@ -389,40 +369,13 @@
   font-size: 14px;
 }
 
-.issuers-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1000;
-  display: grid;
-  place-items: center;
-  padding: 20px;
-  overflow-y: auto;
-  background: rgba(15, 23, 42, 0.6);
-}
-
 .issuers-details-modal {
-  width: min(850px, 100%);
-  padding: 30px;
-  border-radius: 18px;
-  background: white;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-}
-
-.issuers-details-modal header {
-  gap: 18px;
-  margin-bottom: 25px;
-  padding-bottom: 19px;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.issuers-details-modal h2 {
-  margin: 8px 0 0;
-  font-size: 25px;
+  width: min(53rem, calc(100vw - 2rem));
 }
 
 .issuers-modal-loading {
   padding: 20px 0;
-  color: #64748b;
+  color: var(--cv-color-muted);
 }
 
 .issuers-details-grid {
@@ -436,14 +389,14 @@
   flex-direction: column;
   gap: 10px;
   padding: 18px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--cv-color-border);
   border-radius: 11px;
-  background: #f8fafc;
+  background: var(--cv-color-surface-subtle);
   overflow-wrap: anywhere;
 }
 
 .issuers-details-grid span {
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 13px;
 }
 
@@ -454,8 +407,8 @@
 .admin-issuers-footer {
   margin-top: 40px;
   padding: 25px;
-  border-top: 1px solid #e2e8f0;
-  color: #94a3b8;
+  border-top: 1px solid var(--cv-color-border);
+  color: var(--cv-color-muted);
   font-size: 12px;
   text-align: center;
 }
@@ -522,5 +475,351 @@
   .admin-issuers-header-actions {
     flex-wrap: wrap;
     justify-content: flex-end;
+  }
+}
+
+/* Institution certificate branding editor */
+.institution-branding-editor {
+  margin-top: 28px;
+  padding-top: 25px;
+  border-top: 1px solid var(--cv-color-border);
+}
+
+.institution-branding-heading h3 {
+  margin: 8px 0;
+  color: var(--cv-color-text);
+  font-size: 21px;
+  font-weight: 850;
+}
+
+.institution-branding-heading p:last-child {
+  margin: 0;
+  color: var(--cv-color-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.institution-branding-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 17px;
+  margin-top: 22px;
+}
+
+.institution-branding-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.institution-branding-field-full {
+  grid-column: 1 / -1;
+}
+
+.institution-branding-field label {
+  color: var(--cv-color-secondary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.institution-branding-field input,
+.institution-branding-field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--cv-status-inactive-border);
+  border-radius: 9px;
+  background: var(--cv-color-surface);
+  color: var(--cv-color-text);
+  font: inherit;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.institution-branding-field input {
+  min-height: 47px;
+}
+
+.institution-branding-field textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.institution-branding-field input:focus,
+.institution-branding-field textarea:focus {
+  outline: 3px solid var(--cv-color-info-border);
+  border-color: var(--cv-color-primary);
+}
+
+.institution-branding-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.institution-branding-save,
+.institution-branding-upload {
+  min-height: 44px;
+  padding: 0 17px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--cv-color-primary);
+  color: var(--cv-color-surface);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.institution-branding-save:disabled,
+.institution-branding-upload:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.institution-logo-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(250px, auto);
+  align-items: start;
+  gap: 20px;
+  margin-top: 25px;
+  padding: 20px;
+  border: 1px solid var(--cv-color-border);
+  border-radius: 12px;
+  background: var(--cv-color-surface-subtle);
+}
+
+.institution-logo-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.institution-logo-copy strong {
+  color: var(--cv-color-text);
+  font-size: 14px;
+}
+
+.institution-logo-copy span,
+.institution-logo-copy small {
+  color: var(--cv-color-muted);
+  font-size: 12px;
+}
+
+.institution-logo-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.institution-logo-file-label {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  padding: 0 13px;
+  border: 1px solid var(--cv-status-inactive-border);
+  border-radius: 8px;
+  background: var(--cv-color-surface);
+  color: var(--cv-color-secondary);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.institution-logo-controls input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.institution-logo-preview {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 15px;
+  border-top: 1px solid var(--cv-color-border);
+}
+
+.institution-logo-preview span {
+  color: var(--cv-color-muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.institution-logo-preview img {
+  width: 100px;
+  height: 80px;
+  padding: 7px;
+  border: 1px solid var(--cv-color-border);
+  border-radius: 9px;
+  background: var(--cv-color-surface);
+  object-fit: contain;
+}
+
+@media (max-width: 650px) {
+  .institution-branding-form {
+    grid-template-columns: 1fr;
+  }
+
+  .institution-branding-field-full {
+    grid-column: auto;
+  }
+
+  .institution-logo-section {
+    grid-template-columns: 1fr;
+  }
+
+  .institution-logo-controls {
+    justify-content: flex-start;
+  }
+
+  .institution-branding-editor {
+    margin-top: 22px;
+  }
+}
+
+.issuers-assignment-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--cv-color-border);
+}
+
+.issuers-assignment-form label {
+  grid-column: 1 / -1;
+  color: var(--cv-color-secondary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.issuers-assignment-form select {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1.5px solid var(--cv-status-inactive-border);
+  border-radius: 9px;
+  background: var(--cv-color-surface);
+  color: var(--cv-color-text);
+}
+
+.issuers-primary-button {
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--cv-color-primary);
+  color: var(--cv-color-surface);
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.issuers-primary-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 650px) {
+  .issuers-assignment-form {
+    grid-template-columns: 1fr;
+  }
+
+  .issuers-assignment-form label {
+    grid-column: auto;
+  }
+}
+
+.issuers-heading-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.issuers-registration-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.issuers-registration-form label {
+  display: grid;
+  gap: 8px;
+  color: var(--cv-color-secondary);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.issuers-registration-form input,
+.issuers-registration-form select {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 44px;
+  border: 1.5px solid var(--cv-status-inactive-border);
+  border-radius: 9px;
+  padding: 10px 12px;
+  background: var(--cv-color-surface);
+  color: var(--cv-color-text);
+}
+
+.issuers-registration-form button {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+
+.issuers-password-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 18px 0;
+  padding: 14px 16px;
+  border: 1px solid var(--cv-color-warning-border);
+  border-radius: 10px;
+  background: var(--cv-color-warning-surface);
+  color: var(--cv-color-warning);
+}
+
+.issuers-password-banner div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.issuers-password-banner code {
+  font-size: 15px;
+  user-select: all;
+}
+
+.issuers-password-banner button {
+  min-height: 40px;
+  padding: 0 13px;
+  border: 1px solid var(--cv-color-warning);
+  border-radius: 8px;
+  background: var(--cv-color-surface);
+  color: var(--cv-color-warning);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+@media (max-width: 650px) {
+  .issuers-registration-form {
+    grid-template-columns: 1fr;
+  }
+
+  .issuers-registration-form button {
+    grid-column: auto;
+  }
+
+  .issuers-password-banner {
+    align-items: flex-start;
   }
 }

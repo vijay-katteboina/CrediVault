@@ -1,3 +1,23 @@
+/* CrediVault Student Wallet — polished responsive layout */
+
+.wallet-page {
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.wallet-container {
+  width: 100%;
+  margin: 0;
+}
+
+.wallet-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .wallet-workspace {
   display: grid;
   gap: 22px;
@@ -10,10 +30,10 @@
 .wallet-empty-state,
 .wallet-state-card {
   min-width: 0;
-  background: #ffffff;
-  border: 1px solid #e1e8f1;
+  background: var(--cv-color-surface);
+  border: 1px solid var(--cv-color-border);
   border-radius: 15px;
-  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.035);
+  box-shadow: var(--cv-shadow-sm);
 }
 
 .wallet-profile-panel {
@@ -30,8 +50,8 @@
   height: 60px;
   flex: 0 0 60px;
   border-radius: 15px;
-  background: #e8edff;
-  color: #3730a3;
+  background: var(--cv-color-info-surface);
+  color: var(--cv-color-primary);
   font-size: 25px;
   font-weight: 800;
 }
@@ -43,7 +63,7 @@
 
 .wallet-section-label {
   margin: 0 0 8px;
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1.3px;
@@ -51,14 +71,14 @@
 
 .wallet-profile-info h2 {
   margin: 0 0 7px;
-  color: #172033;
+  color: var(--cv-color-text);
   font-size: 20px;
   font-weight: 800;
 }
 
 .wallet-profile-info > p:not(.wallet-section-label) {
   margin: 5px 0;
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 12px;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -69,19 +89,20 @@
   flex-direction: column;
   gap: 7px;
   flex: 0 0 auto;
+  min-width: 150px;
   padding: 14px 17px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--cv-color-border);
   border-radius: 11px;
-  background: #f8fafc;
+  background: var(--cv-color-surface-subtle);
 }
 
 .wallet-academic-year span {
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 11px;
 }
 
 .wallet-academic-year strong {
-  color: #172033;
+  color: var(--cv-color-text);
   font-size: 13px;
 }
 
@@ -95,22 +116,48 @@
   padding: 21px;
 }
 
-.wallet-stat-card > span,
-.wallet-stat-card > small {
-  display: block;
-  color: #64748b;
+.wallet-stat-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--cv-color-muted);
   font-size: 12px;
+  font-weight: 650;
+}
+
+.wallet-stat-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--cv-color-info-surface);
+  color: var(--cv-color-primary);
+  font-size: 16px;
+  font-weight: 850;
+}
+
+.wallet-stat-active .wallet-stat-icon {
+  background: var(--cv-status-active-surface);
+  color: var(--cv-status-active-text);
+}
+
+.wallet-stat-revoked .wallet-stat-icon {
+  background: var(--cv-color-danger-surface);
+  color: var(--cv-color-danger);
 }
 
 .wallet-stat-card > strong {
   display: block;
-  margin: 12px 0 7px;
-  color: #111827;
+  margin: 13px 0 5px;
+  color: var(--cv-color-text);
   font-size: 30px;
-  font-weight: 800;
+  font-weight: 850;
 }
 
 .wallet-stat-card > small {
+  display: block;
+  color: var(--cv-color-muted);
   font-size: 11px;
 }
 
@@ -128,14 +175,14 @@
 
 .wallet-section-heading h2 {
   margin: 0;
-  color: #172033;
+  color: var(--cv-color-text);
   font-size: 21px;
   font-weight: 800;
 }
 
 .wallet-section-description {
   margin: 7px 0 0;
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -144,8 +191,8 @@
   flex: 0 0 auto;
   padding: 7px 11px;
   border-radius: 999px;
-  background: #e8edf5;
-  color: #334155;
+  background: var(--cv-color-surface-subtle);
+  color: var(--cv-color-secondary);
   font-size: 11px;
   font-weight: 700;
 }
@@ -163,7 +210,7 @@
 
 .wallet-credential-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+  box-shadow: var(--cv-shadow-md);
 }
 
 .credential-card-top {
@@ -180,42 +227,25 @@
   width: 43px;
   height: 43px;
   border-radius: 11px;
-  background: #eef2ff;
+  background: var(--cv-color-info-surface);
   font-size: 20px;
 }
 
 .credential-status {
-  padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.credential-status.active {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.credential-status.revoked {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.credential-status.unknown {
-  background: #f1f5f9;
-  color: #475569;
+  flex-shrink: 0;
 }
 
 .credential-card-body h3 {
   margin: 0;
-  color: #172033;
+  color: var(--cv-color-text);
   font-size: 19px;
   font-weight: 800;
+  overflow-wrap: anywhere;
 }
 
 .credential-description {
   margin: 7px 0 0;
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 12px;
 }
 
@@ -224,7 +254,7 @@
   gap: 13px;
   margin-top: 19px;
   padding-top: 17px;
-  border-top: 1px solid #e8edf3;
+  border-top: 1px solid var(--cv-color-border);
 }
 
 .credential-details > div {
@@ -235,12 +265,12 @@
 }
 
 .credential-details span {
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 11px;
 }
 
 .credential-details strong {
-  color: #172033;
+  color: var(--cv-color-text);
   font-size: 12px;
   overflow-wrap: anywhere;
 }
@@ -250,38 +280,28 @@
 }
 
 .credential-qr-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
   margin-top: 17px;
   padding-top: 16px;
-  border-top: 1px solid #e8edf3;
+  border-top: 1px solid var(--cv-color-border);
 }
 
-.credential-qr-toggle {
+.credential-qr-toggle,
+.credential-download-button {
   width: 100%;
-  min-height: 42px;
-  padding: 10px 14px;
-  border: 1px solid #3730a3;
+  min-width: 0;
+}
+
+.credential-revoked-note {
+  margin: 11px 0 0;
+  padding: 9px 11px;
   border-radius: 8px;
-  background: #3730a3;
-  color: #ffffff;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.credential-qr-toggle:hover:not(:disabled) {
-  background: #312e81;
-}
-
-.credential-qr-toggle:focus-visible {
-  outline: 3px solid #a5b4fc;
-  outline-offset: 3px;
-}
-
-.credential-qr-toggle:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  background: var(--cv-color-danger-surface);
+  color: var(--cv-color-danger);
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .credential-qr-panel {
@@ -291,9 +311,9 @@
   gap: 13px;
   margin-top: 15px;
   padding: 21px 15px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--cv-color-border);
   border-radius: 12px;
-  background: #f8fafc;
+  background: var(--cv-color-surface-subtle);
   text-align: center;
 }
 
@@ -302,21 +322,21 @@
   height: auto;
   padding: 8px;
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--cv-color-surface);
 }
 
 .credential-qr-instruction,
 .credential-qr-note {
   max-width: 390px;
   margin: 0;
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 11px;
   line-height: 1.6;
 }
 
 .credential-qr-reference {
   margin: 0;
-  color: #172033;
+  color: var(--cv-color-text);
   font-family: Consolas, 'Courier New', monospace;
   font-size: 12px;
   font-weight: 700;
@@ -333,50 +353,28 @@
   text-align: center;
 }
 
-.wallet-empty-icon {
-  margin-bottom: 3px;
-  font-size: 38px;
-}
-
-.wallet-empty-state h3,
-.wallet-error-card h2 {
+.wallet-empty-state h2,
+.wallet-message h2 {
   margin: 0;
-  color: #172033;
+  color: var(--cv-color-text);
   font-size: 18px;
 }
 
 .wallet-empty-state p,
 .wallet-state-card p {
   margin: 0;
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 12px;
   line-height: 1.6;
 }
 
-.wallet-state-card button {
-  margin-top: 5px;
-  padding: 10px 16px;
-  border: 0;
-  border-radius: 8px;
-  background: #111827;
-  color: #ffffff;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
+.wallet-state-actions {
+  justify-content: center;
+  margin-top: 8px;
 }
 
-.wallet-spinner {
-  width: 30px;
-  height: 30px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #3730a3;
-  border-radius: 50%;
-  animation: wallet-spin 0.8s linear infinite;
-}
-
-@keyframes wallet-spin {
-  to { transform: rotate(360deg); }
+.wallet-download-error {
+  margin-bottom: 16px;
 }
 
 @media (max-width: 850px) {
@@ -386,6 +384,10 @@
 }
 
 @media (max-width: 760px) {
+  .wallet-page {
+    padding: 0;
+  }
+
   .wallet-profile-panel {
     flex-wrap: wrap;
     align-items: flex-start;
@@ -402,7 +404,8 @@
 
 @media (max-width: 560px) {
   .wallet-profile-panel,
-  .wallet-credential-card {
+  .wallet-credential-card,
+  .wallet-stat-card {
     padding: 16px;
   }
 
@@ -414,5 +417,9 @@
   .wallet-profile-info h2,
   .wallet-section-heading h2 {
     font-size: 18px;
+  }
+
+  .credential-qr-actions {
+    grid-template-columns: 1fr;
   }
 }

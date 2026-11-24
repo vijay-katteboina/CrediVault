@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import api from '../../services/api'
+import AdminLayout from '../../components/layout/AdminLayout'
+import { Alert, Button, DataTable, Modal, Pagination, StatusBadge } from '../../components/ui'
 import './InstitutionManagement.css'
 
 function InstitutionManagement() {
@@ -26,7 +28,37 @@ function InstitutionManagement() {
   const [selectedInstitution, setSelectedInstitution] = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
 
+  const [brandingForm, setBrandingForm] = useState({
+    institutionAddress: '',
+    signatoryName: '',
+    signatoryDesignation: '',
+    loginEmail: '',
+    loginPassword: '',
+  })
+  const [brandingSaving, setBrandingSaving] = useState(false)
+  const [logoFile, setLogoFile] = useState(null)
+  const [logoPreview, setLogoPreview] = useState('')
+  const [logoUploading, setLogoUploading] = useState(false)
+
+  const [registrationOpen, setRegistrationOpen] = useState(false)
+  const [registrationSaving, setRegistrationSaving] = useState(false)
+  const [registrationForm, setRegistrationForm] = useState({
+    institutionName: '',
+    institutionCode: '',
+    institutionAddress: '',
+    signatoryName: '',
+    signatoryDesignation: '',
+    loginEmail: '',
+    loginPassword: '',
+  })
+
   const [reloadKey, setReloadKey] = useState(0)
+
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview)
+    }
+  }, [logoPreview])
 
   const handleApiError = useCallback((err) => {
     const statusCode = err.response?.status
@@ -41,6 +73,13 @@ function InstitutionManagement() {
     if (statusCode === 403) {
       setError(
         'Administrator permission is required to manage institutions.'
+      )
+      return
+    }
+
+    if (statusCode === 503) {
+      setError(
+        'University registration is unavailable. Configure CREDIVAULT_KEY_MASTER_KEY and restart the backend.'
       )
       return
     }
@@ -138,11 +177,107 @@ function InstitutionManagement() {
         `/admin/institutions/${institutionId}`
       )
 
-      setSelectedInstitution(response.data)
+      const institution = response.data
+      setSelectedInstitution(institution)
+      setBrandingForm({
+        institutionAddress: institution.institutionAddress || '',
+        signatoryName: institution.signatoryName || '',
+        signatoryDesignation: institution.signatoryDesignation || '',
+      })
+      setLogoFile(null)
+      setLogoPreview('')
     } catch (err) {
       handleApiError(err)
     } finally {
       setDetailLoading(false)
+    }
+  }
+
+
+  const handleBrandingChange = (event) => {
+    const { name, value } = event.target
+    setBrandingForm((current) => ({ ...current, [name]: value }))
+  }
+
+  const saveInstitutionBranding = async (event) => {
+    event.preventDefault()
+    if (!selectedInstitution) return
+
+    setBrandingSaving(true)
+    setError('')
+    setNotice('')
+
+    try {
+      const response = await api.put(
+        `/admin/institutions/${selectedInstitution.institutionId}/branding`,
+        brandingForm
+      )
+
+      setSelectedInstitution(response.data)
+      setBrandingForm({
+        institutionAddress: response.data.institutionAddress || '',
+        signatoryName: response.data.signatoryName || '',
+        signatoryDesignation: response.data.signatoryDesignation || '',
+      })
+      setNotice('Institution certificate branding details saved successfully.')
+      setReloadKey((current) => current + 1)
+    } catch (err) {
+      handleApiError(err)
+    } finally {
+      setBrandingSaving(false)
+    }
+  }
+
+  const handleLogoSelection = (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!['image/png', 'image/jpeg'].includes(file.type)) {
+      setError('Please select a PNG or JPEG image.')
+      event.target.value = ''
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      setError('The institution logo must be 2 MB or smaller.')
+      event.target.value = ''
+      return
+    }
+
+    setError('')
+    setLogoFile(file)
+    setLogoPreview(URL.createObjectURL(file))
+  }
+
+  const uploadInstitutionLogo = async () => {
+    if (!selectedInstitution || !logoFile) {
+      setError('Choose a PNG or JPEG logo before uploading.')
+      return
+    }
+
+    const formData = new FormData()
+    formData.append('file', logoFile)
+
+    setLogoUploading(true)
+    setError('')
+    setNotice('')
+
+    try {
+      const response = await api.post(
+        `/admin/institutions/${selectedInstitution.institutionId}/logo`,
+        formData,
+        { headers: { 'Content-Type': undefined } }
+      )
+
+      setSelectedInstitution(response.data)
+      setLogoFile(null)
+      setLogoPreview('')
+      setNotice('Institution logo uploaded successfully.')
+      setReloadKey((current) => current + 1)
+    } catch (err) {
+      handleApiError(err)
+    } finally {
+      setLogoUploading(false)
     }
   }
 
@@ -189,6 +324,39 @@ function InstitutionManagement() {
     }
   }
 
+  const handleRegistrationChange = (event) => {
+    const { name, value } = event.target
+    setRegistrationForm((current) => ({ ...current, [name]: value }))
+  }
+
+  const registerInstitution = async (event) => {
+    event.preventDefault()
+    setRegistrationSaving(true)
+    setError('')
+    setNotice('')
+
+    try {
+      await api.post('/admin/institutions', registrationForm)
+      setRegistrationOpen(false)
+      setRegistrationForm({
+        institutionName: '',
+        institutionCode: '',
+        institutionAddress: '',
+        signatoryName: '',
+        signatoryDesignation: '',
+        loginEmail: '',
+        loginPassword: '',
+      })
+      setNotice('Institution registered successfully.')
+      setLoading(true)
+      setReloadKey((current) => current + 1)
+    } catch (err) {
+      handleApiError(err)
+    } finally {
+      setRegistrationSaving(false)
+    }
+  }
+
   const handleLogout = () => {
     localStorage.removeItem('credivaultToken')
     localStorage.removeItem('credivaultRole')
@@ -206,73 +374,40 @@ function InstitutionManagement() {
   }
 
   return (
-    <main className="admin-institutions-page">
-      <div className="admin-institutions-container">
-
-        {/* Header */}
-        <header className="admin-institutions-header">
-          <div>
-            <p className="admin-institutions-brand">CrediVault</p>
-            <span className="admin-institutions-role">
-              ADMINISTRATOR
-            </span>
-          </div>
-
-          <div className="institutions-header-actions">
-            <button
-              type="button"
-              className="institutions-secondary-button"
-              onClick={() => navigate('/admin')}
-            >
-              Dashboard
-            </button>
-
-            <button
-              type="button"
-              className="institutions-logout-button"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
-          </div>
-        </header>
-
-        {/* Page Heading */}
-        <section className="admin-institutions-heading">
-          <div>
-            <p className="institutions-kicker">
-              SYSTEM ADMINISTRATION
-            </p>
-
-            <h1>Institution Management</h1>
-
-            <p>
-              Monitor registered institutions and their academic
-              credential activity.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className="institutions-secondary-button institutions-refresh-button"
+    <AdminLayout
+      activeKey="institutions"
+      onLogout={handleLogout}
+      headerActions={(
+        <>
+          <Button onClick={() => setRegistrationOpen(true)}>
+            Register University
+          </Button>
+          <Button
+            variant="secondary"
             onClick={refreshInstitutions}
-            disabled={loading || refreshing}
+            disabled={loading}
+            loading={refreshing}
+            loadingLabel="Refreshing..."
           >
-            {refreshing ? 'Refreshing...' : '↻ Refresh Institutions'}
-          </button>
-        </section>
+            Refresh Institutions
+          </Button>
+        </>
+      )}
+    >
+      <div className="admin-institutions-page">
+      <div className="admin-institutions-container">
 
         {/* Messages */}
         {notice && (
-          <div className="institutions-success-message" role="status">
+          <Alert variant="success" className="institutions-success-message">
             {notice}
-          </div>
+          </Alert>
         )}
 
         {error && (
-          <div className="institutions-error-message" role="alert">
+          <Alert variant="danger" className="institutions-error-message">
             {error}
-          </div>
+          </Alert>
         )}
 
         {/* Summary Cards */}
@@ -390,9 +525,11 @@ function InstitutionManagement() {
             </span>
           </div>
 
-          <div className="institutions-table-wrapper">
-
-            <table className="admin-institutions-table">
+          <DataTable
+            wrapperClassName="institutions-table-wrapper"
+            className="admin-institutions-table"
+            caption="All registered institutions"
+          >
 
               <thead>
                 <tr>
@@ -460,13 +597,7 @@ function InstitutionManagement() {
                         <td>{institution.totalCredentials ?? 0}</td>
 
                         <td>
-                          <span
-                            className={`institutions-status-badge ${
-                              isActive ? 'active' : 'inactive'
-                            }`}
-                          >
-                            {institution.status}
-                          </span>
+                          <StatusBadge status={institution.status} />
                         </td>
 
                         <td>
@@ -509,44 +640,20 @@ function InstitutionManagement() {
 
               </tbody>
 
-            </table>
-
-          </div>
+          </DataTable>
 
           {/* Pagination */}
-          <div className="institutions-pagination">
-
-            <span>
-              Page {page + 1} of {totalPages}
-            </span>
-
-            <div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setLoading(true)
-                  setPage((current) => Math.max(0, current - 1))
-                }}
-                disabled={page === 0 || loading}
-              >
-                ← Previous
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setLoading(true)
-                  setPage((current) => current + 1)
-                }}
-                disabled={page + 1 >= totalPages || loading}
-              >
-                Next →
-              </button>
-
-            </div>
-
-          </div>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            disabled={loading}
+            label="Institution records pages"
+            className="institutions-pagination"
+            onPageChange={(nextPage) => {
+              setLoading(true)
+              setPage(nextPage)
+            }}
+          />
 
         </section>
 
@@ -561,49 +668,86 @@ function InstitutionManagement() {
           </span>
         </div>
 
+        {registrationOpen && (
+          <Modal
+            open
+            onClose={() => setRegistrationOpen(false)}
+            title="Register University"
+            description="Add a university to CrediVault."
+            closeOnBackdrop
+            className="institutions-details-modal"
+          >
+              <form className="institutions-registration-form" onSubmit={registerInstitution}>
+                <label>
+                  University Name
+                  <input name="institutionName" value={registrationForm.institutionName}
+                    onChange={handleRegistrationChange} required maxLength={200} />
+                </label>
+                <label>
+                  Institution Code
+                  <input name="institutionCode" value={registrationForm.institutionCode}
+                    onChange={handleRegistrationChange} required maxLength={30}
+                    pattern="[A-Za-z0-9-]{3,30}" />
+                </label>
+                <label>
+                  Institution Address
+                  <input name="institutionAddress" value={registrationForm.institutionAddress}
+                    onChange={handleRegistrationChange} required maxLength={500} />
+                </label>
+                <label>
+                  Signatory Name
+                  <input name="signatoryName" value={registrationForm.signatoryName}
+                    onChange={handleRegistrationChange} required maxLength={150} />
+                </label>
+                <label>
+                  Signatory Designation
+                  <input name="signatoryDesignation" value={registrationForm.signatoryDesignation}
+                    onChange={handleRegistrationChange} required maxLength={150} />
+                </label>
+                <label>
+                  Login Email
+                  <input
+                    name="loginEmail"
+                    type="email"
+                    value={registrationForm.loginEmail}
+                    onChange={handleRegistrationChange}
+                    required
+                    maxLength={150}
+                  />
+                </label>
+                <label>
+                  Login Password
+                  <input
+                    name="loginPassword"
+                    type="password"
+                    value={registrationForm.loginPassword}
+                    onChange={handleRegistrationChange}
+                    required
+                    minLength={12}
+                    maxLength={255}
+                  />
+                </label>
+
+                  <Button type="submit" loading={registrationSaving} loadingLabel="Registering...">
+                    Register University
+                  </Button>
+              </form>
+          </Modal>
+        )}
+
         {/* Institution Details Modal */}
         {(detailLoading || selectedInstitution) && (
-
-          <div
-            className="institutions-modal-overlay"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget) {
+          <Modal
+              open
+              onClose={() => {
                 setSelectedInstitution(null)
                 setDetailLoading(false)
-              }
-            }}
-          >
-
-            <section
+              }}
+              title="Institution Details"
+              description="Review institution information, branding, and status."
+              closeOnBackdrop
               className="institutions-details-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="institutionDetailsTitle"
-            >
-
-              <header>
-                <div>
-                  <p className="institutions-kicker">
-                    INSTITUTION INFORMATION
-                  </p>
-
-                  <h2 id="institutionDetailsTitle">
-                    Institution Details
-                  </h2>
-                </div>
-
-                <button
-                  type="button"
-                  className="institutions-secondary-button"
-                  onClick={() => {
-                    setSelectedInstitution(null)
-                    setDetailLoading(false)
-                  }}
-                >
-                  Close
-                </button>
-              </header>
-
+          >
               {detailLoading ? (
                 <p className="institutions-modal-loading">
                   Loading institution details...
@@ -673,18 +817,111 @@ function InstitutionManagement() {
                 )
               )}
 
-            </section>
+              {selectedInstitution && !detailLoading && (
+                <section className="institution-branding-editor">
+                  <div className="institution-branding-heading">
+                    <div>
+                      <p className="institutions-kicker">CERTIFICATE CONFIGURATION</p>
+                      <h3>Institution Branding</h3>
+                      <p>These details will appear on certificates generated for this institution.</p>
+                    </div>
+                  </div>
 
-          </div>
+                  <form className="institution-branding-form" onSubmit={saveInstitutionBranding}>
+                    <div className="institution-branding-field institution-branding-field-full">
+                      <label htmlFor="institutionAddress">Institution Address</label>
+                      <textarea
+                        id="institutionAddress"
+                        name="institutionAddress"
+                        value={brandingForm.institutionAddress}
+                        onChange={handleBrandingChange}
+                        maxLength={500}
+                        rows={3}
+                        required
+                        placeholder="Enter the official institution address"
+                      />
+                    </div>
+
+                    <div className="institution-branding-field">
+                      <label htmlFor="signatoryName">Authorized Signatory Name</label>
+                      <input
+                        id="signatoryName"
+                        name="signatoryName"
+                        type="text"
+                        value={brandingForm.signatoryName}
+                        onChange={handleBrandingChange}
+                        maxLength={150}
+                        required
+                        placeholder="e.g. Dr. Principal Name"
+                      />
+                    </div>
+
+                    <div className="institution-branding-field">
+                      <label htmlFor="signatoryDesignation">Signatory Designation</label>
+                      <input
+                        id="signatoryDesignation"
+                        name="signatoryDesignation"
+                        type="text"
+                        value={brandingForm.signatoryDesignation}
+                        onChange={handleBrandingChange}
+                        maxLength={150}
+                        required
+                        placeholder="e.g. Principal / Registrar"
+                      />
+                    </div>
+
+                    <div className="institution-branding-actions institution-branding-field-full">
+                      <button type="submit" className="institution-branding-save" disabled={brandingSaving}>
+                        {brandingSaving ? 'Saving...' : 'Save Branding Details'}
+                      </button>
+                    </div>
+                  </form>
+
+                  <div className="institution-logo-section">
+                    <div className="institution-logo-copy">
+                      <strong>Official Institution Logo</strong>
+                      <span>PNG or JPEG · Maximum file size: 2 MB</span>
+                      {selectedInstitution.logoPath && (
+                        <small>Logo is currently configured for this institution.</small>
+                      )}
+                    </div>
+
+                    <div className="institution-logo-controls">
+                      <label className="institution-logo-file-label" htmlFor="institutionLogoFile">
+                        Choose Logo
+                      </label>
+                      <input
+                        id="institutionLogoFile"
+                        type="file"
+                        accept="image/png,image/jpeg"
+                        onChange={handleLogoSelection}
+                      />
+                      <button
+                        type="button"
+                        className="institution-branding-upload"
+                        onClick={uploadInstitutionLogo}
+                        disabled={!logoFile || logoUploading}
+                      >
+                        {logoUploading ? 'Uploading...' : 'Upload Logo'}
+                      </button>
+                    </div>
+
+                    {logoPreview && (
+                      <div className="institution-logo-preview">
+                        <span>Selected logo preview</span>
+                        <img src={logoPreview} alt="Selected institution logo preview" />
+                      </div>
+                    )}
+                  </div>
+                </section>
+              )}
+
+          </Modal>
         )}
 
-        {/* Footer */}
-        <footer className="admin-institutions-footer">
-          CrediVault · Administrator Institution Management
-        </footer>
-
       </div>
-    </main>
+      </div>
+    </AdminLayout>
   )
 }
 

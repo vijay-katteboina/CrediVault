@@ -10,6 +10,13 @@ public class AdminInstitutionResponse {
     private String status;
     private LocalDateTime createdAt;
 
+    // Institution certificate branding details
+    private String institutionAddress;
+    private String logoPath;
+    private String signatoryName;
+    private String signatoryDesignation;
+
+    // Institution statistics
     private long totalIssuers;
     private long totalStudents;
     private long totalCredentials;
@@ -20,6 +27,10 @@ public class AdminInstitutionResponse {
             String institutionCode,
             String status,
             LocalDateTime createdAt,
+            String institutionAddress,
+            String logoPath,
+            String signatoryName,
+            String signatoryDesignation,
             long totalIssuers,
             long totalStudents,
             long totalCredentials) {
@@ -29,6 +40,12 @@ public class AdminInstitutionResponse {
         this.institutionCode = institutionCode;
         this.status = status;
         this.createdAt = createdAt;
+
+        this.institutionAddress = institutionAddress;
+        this.logoPath = logoPath;
+        this.signatoryName = signatoryName;
+        this.signatoryDesignation = signatoryDesignation;
+
         this.totalIssuers = totalIssuers;
         this.totalStudents = totalStudents;
         this.totalCredentials = totalCredentials;
@@ -52,6 +69,22 @@ public class AdminInstitutionResponse {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public String getInstitutionAddress() {
+        return institutionAddress;
+    }
+
+    public String getLogoPath() {
+        return logoPath;
+    }
+
+    public String getSignatoryName() {
+        return signatoryName;
+    }
+
+    public String getSignatoryDesignation() {
+        return signatoryDesignation;
     }
 
     public long getTotalIssuers() {

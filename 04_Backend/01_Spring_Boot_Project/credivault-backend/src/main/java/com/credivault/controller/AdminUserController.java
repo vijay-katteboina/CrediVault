@@ -2,6 +2,7 @@ package com.credivault.controller;
 
 import com.credivault.dto.AdminUserResponse;
 import com.credivault.dto.AdminUserStatusRequest;
+import com.credivault.dto.AdminUserInstitutionRequest;
 import com.credivault.service.AdminUserService;
 
 import jakarta.validation.Valid;
@@ -74,6 +75,21 @@ public class AdminUserController {
 
         return ResponseEntity.ok(
                 adminUserService.changeUserStatus(
+                        userId,
+                        request,
+                        authentication
+                )
+        );
+    }
+
+    @PutMapping("/{userId}/institution")
+    public ResponseEntity<AdminUserResponse> assignInstitution(
+            @PathVariable Long userId,
+            @Valid @RequestBody AdminUserInstitutionRequest request,
+            Authentication authentication) {
+
+        return ResponseEntity.ok(
+                adminUserService.assignInstitution(
                         userId,
                         request,
                         authentication

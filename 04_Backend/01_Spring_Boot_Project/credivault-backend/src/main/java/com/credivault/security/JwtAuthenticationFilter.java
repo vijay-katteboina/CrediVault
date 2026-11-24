@@ -1,6 +1,7 @@
 package com.credivault.security;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -10,7 +11,9 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.credivault.entity.User;
 import com.credivault.service.JwtService;
+import com.credivault.service.UserService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,13 +25,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final UserService userService;
 
     public JwtAuthenticationFilter(
             JwtService jwtService,
-            UserDetailsService userDetailsService) {
+            UserDetailsService userDetailsService,
+            UserService userService) {
 
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.userService = userService;
     }
 
     @Override
@@ -60,9 +66,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 UserDetails userDetails =
                         userDetailsService.loadUserByUsername(email);
 
-                // Check both JWT validity and current account status.
-                if (jwtService.isTokenValid(token, userDetails.getUsername())
-                        && userDetails.isEnabled()) {
+                User user = userService.findByEmail(email)
+                        .orElseThrow(() ->
+                                new IllegalStateException(
+                                        "User not found"
+                                )
+                        );
+
+                // Extract token version stored inside JWT.
+                Integer jwtTokenVersion =
+                        jwtService.extractTokenVersion(token);
+
+                // Get the latest token version from the database.
+                Integer databaseTokenVersion =
+                        user.getTokenVersion();
+
+                // Validate JWT, account status and token version.
+                boolean tokenVersionMatches =
+                        jwtTokenVersion != null
+                        && databaseTokenVersion != null
+                        && Objects.equals(
+                                jwtTokenVersion,
+                                databaseTokenVersion
+                        );
+
+                if (jwtService.isTokenValid(
+                            token,
+                            userDetails.getUsername())
+                        && userDetails.isEnabled()
+                        && tokenVersionMatches) {
 
                     UsernamePasswordAuthenticationToken authentication =
                             new UsernamePasswordAuthenticationToken(
@@ -83,8 +115,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception exception) {
-            // Invalid, expired, or disabled account.
-            // Spring Security handles the unauthenticated request.
+            // Invalid, expired, outdated or disabled account token.
+            // The request continues without authentication.
         }
 
         filterChain.doFilter(request, response);

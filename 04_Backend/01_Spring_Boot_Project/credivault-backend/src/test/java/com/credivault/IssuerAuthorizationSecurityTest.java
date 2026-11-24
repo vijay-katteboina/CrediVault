@@ -44,10 +44,16 @@ class IssuerAuthorizationSecurityTest {
                                     .getPrivate()
                                     .getEncoded()
                     );
+            String testMasterKey = Base64.getEncoder()
+                    .encodeToString(new byte[32]);
 
             registry.add(
-                    "credivault.issuer.private-key",
+                    "CREDIVAULT_ISSUER_PRIVATE_KEY",
                     () -> testPrivateKey
+            );
+            registry.add(
+                    "credivault.key-master-key",
+                    () -> testMasterKey
             );
 
         } catch (GeneralSecurityException exception) {

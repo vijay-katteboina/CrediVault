@@ -1,17 +1,26 @@
 import LoginPage from '../pages/auth/LoginPage'
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage'
+import ResetPasswordPage from '../pages/auth/ResetPasswordPage'
+
 import StudentDashboard from '../pages/student/StudentDashboard'
 import StudentWallet from '../pages/student/StudentWallet'
+
 import VerifierDashboard from '../pages/verifier/VerifierDashboard'
 import VerifierHistory from '../pages/verifier/VerifierHistory'
+
 import IssuerDashboard from '../pages/issuer/IssuerDashboard'
+
 import AdminDashboard from '../pages/admin/AdminDashboard'
 import AdminUserManagement from '../pages/admin/AdminUserManagement'
 import IssuerManagement from '../pages/admin/IssuerManagement'
 import InstitutionManagement from '../pages/admin/InstitutionManagement'
 import AuditManagement from '../pages/admin/AuditManagement'
 
+import HomePage from '../pages/public/HomePage'
+
 import {
   BrowserRouter,
+  Link,
   Navigate,
   Route,
   Routes,
@@ -46,10 +55,15 @@ function ProtectedRoute({ allowedRoles, children }) {
 
 function Placeholder({ title }) {
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>{title}</h1>
-      <p>This CrediVault page is under development.</p>
-    </div>
+    <main className="not-found-page">
+      <section className="cv-card not-found-card" aria-labelledby="not-found-title">
+        <h1 id="not-found-title">{title}</h1>
+        <p>This CrediVault page is under development.</p>
+        <Link to="/" className="cv-button cv-button--primary">
+          Back to Home
+        </Link>
+      </section>
+    </main>
   )
 }
 
@@ -57,9 +71,28 @@ function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        {/* Public Pages */}
+        <Route path="/" element={<HomePage />} />
+
         <Route path="/login" element={<LoginPage />} />
 
+        <Route
+          path="/forgot-password"
+          element={<ForgotPasswordPage />}
+        />
+
+        <Route
+          path="/reset-password"
+          element={<ResetPasswordPage />}
+        />
+
+        {/* Public Credential Verification */}
+        <Route
+          path="/verify"
+          element={<VerifierDashboard />}
+        />
+
+        {/* Student Routes */}
         <Route
           path="/student"
           element={
@@ -78,13 +111,10 @@ function AppRouter() {
           }
         />
 
+        {/* Verifier Routes */}
         <Route
           path="/verifier"
-          element={
-            <ProtectedRoute allowedRoles={['VERIFIER']}>
-              <VerifierDashboard />
-            </ProtectedRoute>
-          }
+          element={<Navigate to="/verify" replace />}
         />
 
         <Route
@@ -96,6 +126,7 @@ function AppRouter() {
           }
         />
 
+        {/* Issuer Routes */}
         <Route
           path="/issuer"
           element={
@@ -105,6 +136,7 @@ function AppRouter() {
           }
         />
 
+        {/* Admin Routes */}
         <Route
           path="/admin"
           element={
@@ -140,7 +172,7 @@ function AppRouter() {
             </ProtectedRoute>
           }
         />
-        
+
         <Route
           path="/admin/audit-logs"
           element={
@@ -150,6 +182,7 @@ function AppRouter() {
           }
         />
 
+        {/* 404 */}
         <Route
           path="*"
           element={<Placeholder title="404 - Page Not Found" />}

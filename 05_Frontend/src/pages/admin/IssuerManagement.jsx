@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import api from '../../services/api'
+import AdminLayout from '../../components/layout/AdminLayout'
+import { Alert, Button, DataTable, Modal, Pagination, StatusBadge } from '../../components/ui'
 import './IssuerManagement.css'
 
 function IssuerManagement() {
@@ -11,6 +13,7 @@ function IssuerManagement() {
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('')
+  const [institutionFilter, setInstitutionFilter] = useState('')
 
   const [page, setPage] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
@@ -25,6 +28,18 @@ function IssuerManagement() {
 
   const [selectedIssuer, setSelectedIssuer] = useState(null)
   const [detailLoading, setDetailLoading] = useState(false)
+  const [institutions, setInstitutions] = useState([])
+  const [assignmentInstitutionId, setAssignmentInstitutionId] = useState('')
+  const [assignmentSaving, setAssignmentSaving] = useState(false)
+  const [registrationOpen, setRegistrationOpen] = useState(false)
+  const [registrationSaving, setRegistrationSaving] = useState(false)
+  const [registrationForm, setRegistrationForm] = useState({
+    fullName: '',
+    email: '',
+    institutionId: '',
+    initialPassword: '',
+  })
+  const [temporaryPassword, setTemporaryPassword] = useState('')
 
   // A changed reload key deliberately triggers a fresh API request.
   const [reloadKey, setReloadKey] = useState(0)
@@ -57,16 +72,18 @@ function IssuerManagement() {
 
     const loadIssuers = async () => {
       const params = {
-        role: 'ISSUER',
         page,
         size: 10,
       }
 
       if (search) params.search = search
       if (status) params.status = status
+      if (institutionFilter) {
+        params.institutionId = institutionFilter
+      }
 
       try {
-        const response = await api.get('/admin/users', { params })
+        const response = await api.get('/admin/issuers', { params })
 
         if (!active) return
 
@@ -89,7 +106,22 @@ function IssuerManagement() {
     return () => {
       active = false
     }
-  }, [page, search, status, reloadKey, handleApiError])
+  }, [page, search, status, institutionFilter, reloadKey, handleApiError])
+
+  useEffect(() => {
+    const loadInstitutions = async () => {
+      try {
+        const response = await api.get('/admin/institutions', {
+          params: { page: 0, size: 100, status: 'ACTIVE' },
+        })
+        setInstitutions(response.data.content || [])
+      } catch (err) {
+        handleApiError(err)
+      }
+    }
+
+    void loadInstitutions()
+  }, [handleApiError])
 
   const handleSearch = (event) => {
     event.preventDefault()
@@ -108,12 +140,21 @@ function IssuerManagement() {
     setStatus(event.target.value)
   }
 
+  const handleInstitutionFilterChange = (event) => {
+    setNotice('')
+    setError('')
+    setLoading(true)
+    setPage(0)
+    setInstitutionFilter(event.target.value)
+  }
+
   const clearFilters = () => {
     setNotice('')
     setError('')
     setSearchInput('')
     setSearch('')
     setStatus('')
+    setInstitutionFilter('')
     setPage(0)
     setLoading(true)
   }
@@ -126,18 +167,110 @@ function IssuerManagement() {
     setReloadKey((current) => current + 1)
   }
 
+  const handleRegistrationChange = (event) => {
+    const { name, value } = event.target
+    setRegistrationForm((current) => ({ ...current, [name]: value }))
+  }
+
+  const registerIssuer = async (event) => {
+    event.preventDefault()
+    setRegistrationSaving(true)
+    setError('')
+    setNotice('')
+    setTemporaryPassword('')
+
+    try {
+      const payload = {
+        fullName: registrationForm.fullName,
+        email: registrationForm.email,
+        institutionId: Number(registrationForm.institutionId),
+      }
+      if (registrationForm.initialPassword) {
+        payload.initialPassword = registrationForm.initialPassword
+      }
+
+      const response = await api.post('/admin/issuers', payload)
+      setTemporaryPassword(
+        response.data.temporaryPassword || ''
+      )
+      setRegistrationOpen(false)
+      setRegistrationForm({
+        fullName: '',
+        email: '',
+        institutionId: '',
+        initialPassword: '',
+      })
+      setNotice('Issuer registered successfully.')
+      setReloadKey((current) => current + 1)
+    } catch (err) {
+      handleApiError(err)
+    } finally {
+      setRegistrationSaving(false)
+    }
+  }
+
+  const resetIssuerPassword = async () => {
+    if (!selectedIssuer) return
+    setTemporaryPassword('')
+    setError('')
+    setNotice('')
+
+    try {
+      const response = await api.put(
+        `/admin/issuers/${selectedIssuer.userId}/reset-password`
+      )
+      setTemporaryPassword(
+        response.data.temporaryPassword || ''
+      )
+      setNotice('Issuer password reset successfully.')
+    } catch (err) {
+      handleApiError(err)
+    }
+  }
+
   const viewIssuer = async (issuerId) => {
     setDetailLoading(true)
     setSelectedIssuer(null)
     setError('')
 
     try {
-      const response = await api.get(`/admin/users/${issuerId}`)
+      const response = await api.get(`/admin/issuers/${issuerId}`)
       setSelectedIssuer(response.data)
+      setAssignmentInstitutionId(
+        response.data.institutionId
+          ? String(response.data.institutionId)
+          : ''
+      )
     } catch (err) {
       handleApiError(err)
     } finally {
       setDetailLoading(false)
+    }
+  }
+
+  const assignIssuerInstitution = async () => {
+    if (!selectedIssuer || !assignmentInstitutionId) {
+      setError('Choose an active institution before assigning the issuer.')
+      return
+    }
+
+    setAssignmentSaving(true)
+    setError('')
+    setNotice('')
+
+    try {
+      const response = await api.put(
+        `/admin/users/${selectedIssuer.userId}/institution`,
+        { institutionId: Number(assignmentInstitutionId) }
+      )
+      setSelectedIssuer(response.data)
+      setAssignmentInstitutionId('')
+      setNotice('Issuer institution assignment updated successfully.')
+      setReloadKey((current) => current + 1)
+    } catch (err) {
+      handleApiError(err)
+    } finally {
+      setAssignmentSaving(false)
     }
   }
 
@@ -158,7 +291,7 @@ function IssuerManagement() {
 
     try {
       const response = await api.put(
-        `/admin/users/${issuer.userId}/status`,
+        `/admin/issuers/${issuer.userId}/status`,
         { accountStatus: nextStatus }
       )
 
@@ -197,63 +330,57 @@ function IssuerManagement() {
   }
 
   return (
-    <main className="admin-issuers-page">
+    <AdminLayout
+      activeKey="issuers"
+      onLogout={handleLogout}
+      headerActions={(
+        <>
+          <Button onClick={() => setRegistrationOpen(true)}>
+            Register Issuer
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={refreshIssuers}
+            disabled={loading}
+            loading={refreshing}
+            loadingLabel="Refreshing..."
+          >
+            Refresh Issuers
+          </Button>
+        </>
+      )}
+    >
+      <div className="admin-issuers-page">
       <div className="admin-issuers-container">
 
-        <header className="admin-issuers-header">
-          <div>
-            <p className="admin-issuers-brand">CrediVault</p>
-            <span className="admin-issuers-role">ADMINISTRATOR</span>
-          </div>
-
-          <div className="admin-issuers-header-actions">
-            <button
-              type="button"
-              className="issuers-secondary-button"
-              onClick={() => navigate('/admin')}
-            >
-              Dashboard
-            </button>
-
-            <button
-              type="button"
-              className="issuers-logout-button"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
-          </div>
-        </header>
-
-        <section className="admin-issuers-heading">
-          <div>
-            <p className="issuers-kicker">SYSTEM ADMINISTRATION</p>
-            <h1>Issuer Management</h1>
-            <p>
-              Review authorized issuer accounts and their institution associations.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            className="issuers-secondary-button issuers-refresh-button"
-            onClick={refreshIssuers}
-            disabled={loading || refreshing}
-          >
-            {refreshing ? 'Refreshing...' : '↻ Refresh Issuers'}
-          </button>
-        </section>
-
         {notice && (
-          <div className="issuers-success-message" role="status">
+          <Alert variant="success" className="issuers-success-message">
             {notice}
-          </div>
+          </Alert>
         )}
 
         {error && (
-          <div className="issuers-error-message" role="alert">
+          <Alert variant="danger" className="issuers-error-message">
             {error}
-          </div>
+          </Alert>
+        )}
+
+        {temporaryPassword && (
+          <Alert variant="warning" className="issuers-password-banner">
+            <div>
+              <strong>Temporary password (shown once)</strong>
+              <code>{temporaryPassword}</code>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() =>
+                navigator.clipboard?.writeText(temporaryPassword)
+              }
+            >
+              Copy
+            </Button>
+          </Alert>
         )}
 
         <section className="issuers-summary-grid">
@@ -291,6 +418,25 @@ function IssuerManagement() {
                 placeholder="Search by issuer name or email..."
                 maxLength={100}
               />
+            </div>
+
+            <div className="issuers-filter-group">
+              <label htmlFor="issuerInstitutionFilter">University</label>
+              <select
+                id="issuerInstitutionFilter"
+                value={institutionFilter}
+                onChange={handleInstitutionFilterChange}
+              >
+                <option value="">All Universities</option>
+                {institutions.map((institution) => (
+                  <option
+                    key={institution.institutionId}
+                    value={institution.institutionId}
+                  >
+                    {institution.institutionName}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div className="issuers-filter-group">
@@ -334,8 +480,11 @@ function IssuerManagement() {
             </span>
           </div>
 
-          <div className="issuers-table-wrapper">
-            <table className="admin-issuers-table">
+          <DataTable
+            wrapperClassName="issuers-table-wrapper"
+            className="admin-issuers-table"
+            caption="All registered issuer accounts"
+          >
               <thead>
                 <tr>
                   <th>Issuer</th>
@@ -381,11 +530,7 @@ function IssuerManagement() {
                         <td>{issuer.institutionCode || 'Not available'}</td>
 
                         <td>
-                          <span
-                            className={`issuers-status-badge ${isActive ? 'active' : 'inactive'}`}
-                          >
-                            {issuer.accountStatus}
-                          </span>
+                          <StatusBadge status={issuer.accountStatus} />
                         </td>
 
                         <td>
@@ -417,87 +562,120 @@ function IssuerManagement() {
                   })
                 )}
               </tbody>
-            </table>
-          </div>
+          </DataTable>
 
-          <div className="issuers-pagination">
-            <span>
-              Page {page + 1} of {totalPages}
-            </span>
-
-            <div>
-              <button
-                type="button"
-                onClick={() => {
-                  setLoading(true)
-                  setPage((current) => Math.max(0, current - 1))
-                }}
-                disabled={page === 0 || loading}
-              >
-                ← Previous
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setLoading(true)
-                  setPage((current) => current + 1)
-                }}
-                disabled={page + 1 >= totalPages || loading}
-              >
-                Next →
-              </button>
-            </div>
-          </div>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            disabled={loading}
+            label="Issuer records pages"
+            className="issuers-pagination"
+            onPageChange={(nextPage) => {
+              setLoading(true)
+              setPage(nextPage)
+            }}
+          />
         </section>
 
         <div className="issuers-info-note">
-          <strong>Institution association is read-only in this module.</strong>
+          <strong>Issuer institutions can be assigned from issuer details.</strong>
           <span>
-            Issuer-to-institution assignment and cryptographic key provisioning
-            are not changed from this screen. Existing institution and signing-key
-            records remain untouched.
+            Assign issuers only to active institutions. This changes the institution
+            used for credential issuance and institution-level authorization.
           </span>
         </div>
 
-        {(detailLoading || selectedIssuer) && (
-          <div
-            className="issuers-modal-overlay"
-            onMouseDown={(event) => {
-              if (event.target === event.currentTarget) {
-                setSelectedIssuer(null)
-                setDetailLoading(false)
-              }
-            }}
+        {registrationOpen && (
+          <Modal
+            open
+            onClose={() => setRegistrationOpen(false)}
+            title="Register Issuer"
+            description="Create an issuer account and associate it with an active university."
+            closeOnBackdrop
+            className="issuers-details-modal"
           >
-            <section
-              className="issuers-details-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="issuerDetailsTitle"
-            >
-              <header>
-                <div>
-                  <p className="issuers-kicker">ISSUER INFORMATION</p>
-                  <h2 id="issuerDetailsTitle">Issuer Details</h2>
-                </div>
-
-                <button
-                  type="button"
-                  className="issuers-secondary-button"
-                  onClick={() => {
-                    setSelectedIssuer(null)
-                    setDetailLoading(false)
-                  }}
+              <form className="issuers-registration-form" onSubmit={registerIssuer}>
+                <label>
+                  Full Name
+                  <input
+                    name="fullName"
+                    value={registrationForm.fullName}
+                    onChange={handleRegistrationChange}
+                    required
+                    maxLength={100}
+                  />
+                </label>
+                <label>
+                  Email
+                  <input
+                    name="email"
+                    type="email"
+                    value={registrationForm.email}
+                    onChange={handleRegistrationChange}
+                    required
+                    maxLength={150}
+                  />
+                </label>
+                <label>
+                  University
+                  <select
+                    name="institutionId"
+                    value={registrationForm.institutionId}
+                    onChange={handleRegistrationChange}
+                    required
+                  >
+                    <option value="">Select active university</option>
+                    {institutions.map((institution) => (
+                      <option
+                        key={institution.institutionId}
+                        value={institution.institutionId}
+                      >
+                        {institution.institutionName} ({institution.institutionCode})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  Initial Password (required)
+                  <input
+                    name="initialPassword"
+                    type="password"
+                    value={registrationForm.initialPassword}
+                    onChange={handleRegistrationChange}
+                    required
+                    minLength={12}
+                    maxLength={255}
+                  />
+                </label>
+                <Button
+                  type="submit"
+                  loading={registrationSaving}
+                  loadingLabel="Registering..."
                 >
-                  Close
-                </button>
-              </header>
+                  Register Issuer
+                </Button>
+              </form>
+          </Modal>
+        )}
+
+        {(detailLoading || selectedIssuer) && (
+          <Modal
+            open
+            onClose={() => {
+              setSelectedIssuer(null)
+              setDetailLoading(false)
+            }}
+            title="Issuer Details"
+            description="Review issuer account, university association, and account actions."
+            closeOnBackdrop
+            className="issuers-details-modal"
+          >
 
               {detailLoading ? (
                 <p className="issuers-modal-loading">Loading issuer details...</p>
               ) : (
                 selectedIssuer && (
+                  <>
                   <div className="issuers-details-grid">
                     <div>
                       <span>Issuer ID</span>
@@ -544,17 +722,53 @@ function IssuerManagement() {
                       <strong>{formatDate(selectedIssuer.createdAt)}</strong>
                     </div>
                   </div>
+
+                  <div className="issuers-assignment-form">
+                    <label htmlFor="issuerInstitutionAssignment">
+                      Assign to Institution
+                    </label>
+                    <select
+                      id="issuerInstitutionAssignment"
+                      value={assignmentInstitutionId}
+                      onChange={(event) =>
+                        setAssignmentInstitutionId(event.target.value)
+                      }
+                    >
+                      <option value="">Select an active institution</option>
+                      {institutions.map((institution) => (
+                        <option
+                          key={institution.institutionId}
+                          value={institution.institutionId}
+                        >
+                          {institution.institutionName} ({institution.institutionCode})
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="issuers-primary-button"
+                      onClick={assignIssuerInstitution}
+                      disabled={assignmentSaving}
+                    >
+                      {assignmentSaving ? 'Saving...' : 'Save Assignment'}
+                    </button>
+                    <button
+                      type="button"
+                      className="issuers-secondary-button"
+                      onClick={resetIssuerPassword}
+                    >
+                      Reset Password
+                    </button>
+                  </div>
+                  </>
                 )
               )}
-            </section>
-          </div>
+          </Modal>
         )}
 
-        <footer className="admin-issuers-footer">
-          CrediVault · Administrator Issuer Management
-        </footer>
       </div>
-    </main>
+      </div>
+    </AdminLayout>
   )
 }
 

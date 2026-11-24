@@ -6,34 +6,39 @@ import com.credivault.entity.Credential;
 import com.credivault.entity.Student;
 import com.credivault.repository.CredentialRepository;
 import com.credivault.repository.StudentRepository;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class StudentService {
 
     private final StudentRepository studentRepository;
     private final CredentialRepository credentialRepository;
+    private final CertificatePdfService certificatePdfService;
 
     public StudentService(
             StudentRepository studentRepository,
-            CredentialRepository credentialRepository) {
+            CredentialRepository credentialRepository,
+            CertificatePdfService certificatePdfService) {
 
         this.studentRepository = studentRepository;
         this.credentialRepository = credentialRepository;
+        this.certificatePdfService = certificatePdfService;
     }
 
+    /**
+     * Retrieves the authenticated student's wallet.
+     */
     @Transactional(readOnly = true)
     public WalletResponse getWallet(String email) {
 
-        Student student = studentRepository.findByUserEmail(email)
-                .orElseThrow(() ->
-                        new IllegalArgumentException(
-                                "Student profile not found for user: " + email
-                        )
-                );
+        Student student = findStudentByEmail(email);
 
         List<Credential> credentials =
                 credentialRepository.findByStudentStudentId(
@@ -68,6 +73,65 @@ public class StudentService {
         response.setCredentials(credentialResponses);
 
         return response;
+    }
+
+    /**
+     * Generates a certificate after confirming that the credential
+     * belongs to the authenticated student.
+     *
+     * The credential ID supplied by the client is never treated
+     * as proof of ownership.
+     */
+    @Transactional(readOnly = true)
+    public byte[] downloadCertificate(
+            Long credentialId,
+            String authenticatedEmail) {
+
+        if (credentialId == null || credentialId <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "A valid credential ID is required"
+            );
+        }
+
+        Student authenticatedStudent =
+                findStudentByEmail(authenticatedEmail);
+
+        Credential credential = credentialRepository
+                .findById(credentialId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Credential not found"
+                ));
+
+        Long credentialStudentId =
+                credential.getStudent() == null
+                        ? null
+                        : credential.getStudent().getStudentId();
+
+        if (!Objects.equals(
+                authenticatedStudent.getStudentId(),
+                credentialStudentId)) {
+
+            // Return 404 rather than disclose another student's credential.
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Credential not found"
+            );
+        }
+
+        return certificatePdfService.generateCertificate(
+                credential.getCredentialCode()
+        );
+    }
+
+    private Student findStudentByEmail(String email) {
+
+        return studentRepository.findByUserEmail(email)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Student profile not found"
+                ));
     }
 
     private WalletCredentialResponse toWalletCredentialResponse(

@@ -5,39 +5,44 @@ import {
   useState
 } from 'react'
 
-import { useNavigate } from 'react-router-dom'
-
 import api from '../../services/api'
-import RoleLayout from '../../components/layout/RoleLayout'
+import { Alert, Button, Card, Input, StatusBadge } from '../../components/ui'
 import './VerifierDashboard.css'
 
-const VERIFIER_NAV_ITEMS = [
-  {
-    key: 'verify',
-    label: 'Verify Credential',
-    pageTitle: 'Credential Verification',
-    description: 'Verify academic credentials using digital signatures, data integrity checks and revocation status.',
-    icon: '✓',
-  },
-  {
-    key: 'history',
-    label: 'Verification History',
-    pageTitle: 'Verification History',
-    description: 'Review recorded academic credential verification activity.',
-    icon: '↻',
-  },
-]
+// Accept either a raw CrediVault credential code or its public verification URL.
+function extractCredentialCode(value) {
+  if (!value) return null
+
+  const input = value.trim()
+
+  if (/^CV-[A-Z0-9]+$/i.test(input)) {
+    return input.toUpperCase()
+  }
+
+  try {
+    const url = new URL(input)
+    const pathname = url.pathname.replace(/\/+$/, '')
+
+    if (pathname !== '/verify') {
+      return null
+    }
+
+    const code = url.searchParams.get('code')?.trim()
+
+    return code && /^CV-[A-Z0-9]+$/i.test(code)
+      ? code.toUpperCase()
+      : null
+  } catch {
+    return null
+  }
+}
 
 function VerifierDashboard() {
-  const navigate = useNavigate()
 
   const [credentialCode, setCredentialCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState(null)
-  const [verifierProfile, setVerifierProfile] = useState(null)
-  const [profileLoading, setProfileLoading] = useState(true)
-  const [profileError, setProfileError] = useState('')
 
   // QR Scanner states
   const [scannerOpen, setScannerOpen] = useState(false)
@@ -49,96 +54,38 @@ function VerifierDashboard() {
   const videoRef = useRef(null)
   const scannerControlsRef = useRef(null)
   const processingScanRef = useRef(false)
+  const initialCodeProcessedRef = useRef(false)
 
-  // Require an authenticated Verifier session.
-  useEffect(() => {
-    const token = localStorage.getItem('credivaultToken')
-    const role = localStorage.getItem('credivaultRole')
-
-    if (!token) {
-      navigate('/login', { replace: true })
-      return
-    }
-
-    if (role !== 'VERIFIER') {
-      const roleRoutes = {
-        STUDENT: '/student',
-        ISSUER: '/issuer',
-        ADMIN: '/admin',
-      }
-
-      navigate(roleRoutes[role] || '/login', {
-        replace: true
-      })
-    }
-  }, [navigate])
-
-  // Load the authenticated verifier profile for the shared sidebar.
-  useEffect(() => {
-    let cancelled = false
-
-    const loadProfile = async () => {
-      const token = localStorage.getItem('credivaultToken')
-
-      if (!token) {
-        navigate('/login', { replace: true })
-        return
-      }
-
-      try {
-        const response = await api.get('/auth/me')
-
-        if (!cancelled) {
-          setVerifierProfile(response.data)
-          setProfileError('')
-        }
-      } catch (err) {
-        if (cancelled) return
-
-        if (err.response?.status === 401) {
-          localStorage.removeItem('credivaultToken')
-          localStorage.removeItem('credivaultRole')
-          navigate('/login', { replace: true })
-          return
-        }
-
-        setProfileError(
-          err.response?.data?.message ||
-          'Unable to load verifier profile.'
-        )
-      } finally {
-        if (!cancelled) {
-          setProfileLoading(false)
-        }
-      }
-    }
-
-    void loadProfile()
-
-    return () => {
-      cancelled = true
-    }
-  }, [navigate])
 
   // Stop camera and release its resources.
   const stopCamera = useCallback(() => {
-    if (scannerControlsRef.current) {
+  if (scannerControlsRef.current) {
+    try {
       scannerControlsRef.current.stop()
+    } catch (error) {
+      console.warn('Scanner cleanup error:', error)
+    } finally {
       scannerControlsRef.current = null
     }
+  }
 
-    const video = videoRef.current
-    const stream = video?.srcObject
+  const video = videoRef.current
+  const stream = video?.srcObject
 
-    if (stream && typeof stream.getTracks === 'function') {
-      stream.getTracks().forEach((track) => track.stop())
-    }
+  if (stream && typeof stream.getTracks === 'function') {
+    stream.getTracks().forEach((track) => {
+      try {
+        track.stop()
+      } catch (error) {
+        console.warn('Camera track cleanup error:', error)
+      }
+    })
+  }
 
-    if (video) {
-      video.srcObject = null
-    }
+  if (video) {
+    video.srcObject = null
+  }
   }, [])
-
   // Handle camera errors.
   const getCameraErrorMessage = (cameraError) => {
     switch (cameraError?.name) {
@@ -166,72 +113,61 @@ function VerifierDashboard() {
 
   // Verify a credential using the existing backend API.
   // Used by both manual verification and QR scanning.
+  // Public credential verification — no login required.
   const verifyCredential = useCallback(async (codeValue) => {
-    setError('')
-    setResult(null)
+  setError('')
+  setResult(null)
 
-    const token = localStorage.getItem('credivaultToken')
-    const role = localStorage.getItem('credivaultRole')
-    const code = (codeValue || '').trim()
+  const code = (codeValue || '').trim()
 
-    if (!token) {
-      navigate('/login', { replace: true })
-      return
-    }
+  if (!code) {
+    setError('Please enter a credential code.')
+    return
+  }
 
-    if (role !== 'VERIFIER') {
+  setLoading(true)
+
+  try {
+    const response = await api.post('/verification/public', {
+      credentialCode: code,
+    })
+
+    setResult(response.data)
+  } catch (err) {
+    if (err.response?.status === 404) {
       setError(
-        'Only a Verifier account can verify credentials. ' +
-        'Please sign in with your Verifier account.'
+        'Credential not found. Please check the credential code and try again.'
       )
-      return
-    }
-
-    if (!code) {
-      setError('Please enter a credential code.')
-      return
-    }
-
-    setLoading(true)
-
-    try {
-      const response = await api.post('/verification', {
-        credentialCode: code,
-      })
-
-      setResult(response.data)
-    } catch (err) {
-      if (err.response?.status === 401) {
-        localStorage.removeItem('credivaultToken')
-        localStorage.removeItem('credivaultRole')
-
-        navigate('/login', { replace: true })
-        return
-      }
-
-      if (err.response?.status === 403) {
-        setError(
-          'Access denied. Please sign in with an authorized Verifier account.'
-        )
-        return
-      }
-
-      if (err.response?.status === 404) {
-        setError(
-          'Credential not found. Please check the credential code and try again.'
-        )
-        return
-      }
-
+    } else {
       setError(
         err.response?.data?.message ||
         err.response?.data?.error ||
-        'Verification failed. Check the credential code and try again.'
+        'Verification failed. Please try again.'
       )
-    } finally {
-      setLoading(false)
     }
-  }, [navigate])
+  } finally {
+    setLoading(false)
+  }
+}, [])
+
+  // Automatically verify a credential when the page is opened from its QR URL.
+  useEffect(() => {
+    if (initialCodeProcessedRef.current) {
+      return
+    }
+
+    initialCodeProcessedRef.current = true
+
+    const params = new URLSearchParams(window.location.search)
+    const codeFromUrl = extractCredentialCode(params.get('code'))
+
+    if (codeFromUrl) {
+      setCredentialCode(codeFromUrl)
+      void verifyCredential(codeFromUrl)
+    } else if (params.has('code')) {
+      setError('Invalid credential code in the verification URL.')
+    }
+  }, [verifyCredential])
 
   // Manual credential verification.
   const handleVerify = async (event) => {
@@ -301,10 +237,11 @@ function VerifierDashboard() {
               return
             }
 
-            const scannedCode = scanResult.getText().trim()
+            const scannedValue = scanResult.getText().trim()
+            const scannedCode = extractCredentialCode(scannedValue)
 
-            // Accept only CrediVault credential references.
-            if (!/^CV-[A-Z0-9]+$/i.test(scannedCode)) {
+            // Accept a raw credential code or a CrediVault verification URL.
+            if (!scannedCode) {
               processingScanRef.current = true
 
               callbackControls?.stop()
@@ -368,15 +305,6 @@ function VerifierDashboard() {
     stopCamera
   ])
 
-  // Clear the current session.
-  const handleLogout = () => {
-    handleStopScanner()
-
-    localStorage.removeItem('credivaultToken')
-    localStorage.removeItem('credivaultRole')
-
-    navigate('/login', { replace: true })
-  }
 
   // Format dates returned by the backend.
   const formatDate = (value) => {
@@ -423,21 +351,14 @@ function VerifierDashboard() {
     : false
 
   return (
-    <RoleLayout
-      role="VERIFIER"
-      navItems={VERIFIER_NAV_ITEMS}
-      activeKey="verify"
-      onNavigate={(key) =>
-        navigate(key === 'history' ? '/verifier/history' : '/verifier')
-      }
-      onLogout={handleLogout}
-      profile={verifierProfile}
-      profileLoading={profileLoading}
-      profileError={profileError}
-    >
+    <main className="verifier-public-page">
+      <header className="verifier-public-header">
+        <h1>Public Credential Verification</h1>
+        <p>Verify the authenticity and current status of an academic credential. No login is required.</p>
+      </header>
       <div className="verifier-workspace">
         {/* Verification form */}
-        <section className="verification-form-card">
+        <Card className="verification-form-card">
 
           <div className="verification-form-heading">
             <div
@@ -463,7 +384,7 @@ function VerifierDashboard() {
               Credential Code
             </label>
 
-            <input
+            <Input
               id="credentialCode"
               name="credentialCode"
               type="text"
@@ -477,23 +398,18 @@ function VerifierDashboard() {
             />
 
             {error && (
-              <div
-                className="verification-error"
-                role="alert"
-              >
+              <Alert variant="danger" className="verification-error">
                 {error}
-              </div>
+              </Alert>
             )}
 
-            <button
+            <Button
               type="submit"
-              className="verify-button"
-              disabled={loading}
+              loading={loading}
+              loadingLabel="Verifying Credential..."
             >
-              {loading
-                ? 'Verifying Credential...'
-                : 'Verify Credential'}
-            </button>
+              Verify Credential
+            </Button>
           </form>
 
           <p className="verification-hint">
@@ -505,9 +421,8 @@ function VerifierDashboard() {
             <span>OR</span>
           </div>
 
-          <button
-            type="button"
-            className="qr-scanner-toggle"
+          <Button
+            variant="secondary"
             onClick={
               scannerOpen
                 ? handleStopScanner
@@ -518,7 +433,7 @@ function VerifierDashboard() {
             {scannerOpen
               ? 'Close QR Scanner'
               : 'Scan QR Code with Camera'}
-          </button>
+          </Button>
 
           {/* QR Scanner Panel */}
           {scannerOpen && (
@@ -546,12 +461,9 @@ function VerifierDashboard() {
               </div>
 
               {scannerError ? (
-                <div
-                  className="qr-scanner-error"
-                  role="alert"
-                >
+                <Alert variant="danger" className="qr-scanner-error">
                   {scannerError}
-                </div>
+                </Alert>
               ) : (
                 <p
                   className="qr-scanner-status"
@@ -564,13 +476,12 @@ function VerifierDashboard() {
               )}
 
               {scannerError && (
-                <button
-                  type="button"
-                  className="qr-scanner-retry"
+                <Button
+                  variant="secondary"
                   onClick={handleStartScanner}
                 >
                   Retry Camera
-                </button>
+                </Button>
               )}
 
               <p className="qr-scanner-note">
@@ -579,7 +490,7 @@ function VerifierDashboard() {
               </p>
             </section>
           )}
-        </section>
+        </Card>
 
         {/* Display the actual verification response */}
         {result && (
@@ -587,7 +498,7 @@ function VerifierDashboard() {
             className="verification-result-section"
             aria-live="polite"
           >
-            <div className="verification-result-card">
+            <Card className="verification-result-card">
 
               {/* Overall result */}
               <div className="result-header">
@@ -612,13 +523,12 @@ function VerifierDashboard() {
                   </p>
                 </div>
 
-                <span
+                <StatusBadge
+                  status={result.result || 'UNKNOWN'}
                   className={`result-badge ${
                     result.result?.toLowerCase() || 'unknown'
                   }`}
-                >
-                  {result.result || 'UNKNOWN'}
-                </span>
+                />
               </div>
 
               {/* Security checks */}
@@ -691,6 +601,13 @@ function VerifierDashboard() {
                 <h3>Credential Information</h3>
 
                 <div className="verified-details-grid">
+                  <div className="verified-detail">
+                    <span>Student Name</span>
+                    <strong>
+                      {result.studentName || '—'}
+                    </strong>
+                  </div>
+
                   <div className="verified-detail">
                     <span>Student Number</span>
                     <strong>
@@ -789,12 +706,12 @@ function VerifierDashboard() {
                 The displayed result reflects the backend response.
               </div>
 
-            </div>
+            </Card>
           </section>
         )}
 
       </div>
-    </RoleLayout>
+    </main>
   )
 }
 

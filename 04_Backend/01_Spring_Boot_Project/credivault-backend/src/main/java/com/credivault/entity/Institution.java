@@ -33,6 +33,19 @@ public class Institution {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    // Institution certificate branding details
+    @Column(name = "institution_address", length = 500)
+    private String institutionAddress;
+
+    @Column(name = "logo_path", length = 500)
+    private String logoPath;
+
+    @Column(name = "signatory_name", length = 150)
+    private String signatoryName;
+
+    @Column(name = "signatory_designation", length = 150)
+    private String signatoryDesignation;
+
     public Institution() {
     }
 
@@ -83,4 +96,37 @@ public class Institution {
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
+
+    public String getInstitutionAddress() {
+        return institutionAddress;
+    }
+
+    public void setInstitutionAddress(String institutionAddress) {
+        this.institutionAddress = institutionAddress;
+    }
+
+    public String getLogoPath() {
+        return logoPath;
+    }
+
+    public void setLogoPath(String logoPath) {
+        this.logoPath = logoPath;
+    }
+
+    public String getSignatoryName() {
+        return signatoryName;
+    }
+
+    public void setSignatoryName(String signatoryName) {
+        this.signatoryName = signatoryName;
+    }
+
+    public String getSignatoryDesignation() {
+        return signatoryDesignation;
+    }
+
+    public void setSignatoryDesignation(String signatoryDesignation) {
+        this.signatoryDesignation = signatoryDesignation;
+    }
+
 }

@@ -29,7 +29,11 @@ public class JwtService {
         this.expirationMs = expirationMs;
     }
 
-    public String generateToken(String email, String role) {
+    // Generate JWT with the user's current token version.
+    public String generateToken(
+            String email,
+            String role,
+            Integer tokenVersion) {
 
         Date now = new Date();
         Date expiration = new Date(now.getTime() + expirationMs);
@@ -37,6 +41,7 @@ public class JwtService {
         return Jwts.builder()
                 .subject(email)
                 .claim("role", role)
+                .claim("tokenVersion", tokenVersion)
                 .issuedAt(now)
                 .expiration(expiration)
                 .signWith(signingKey)
@@ -53,6 +58,13 @@ public class JwtService {
 
         Claims claims = extractClaims(token);
         return claims.get("role", String.class);
+    }
+
+    // Extract token version from JWT.
+    public Integer extractTokenVersion(String token) {
+
+        Claims claims = extractClaims(token);
+        return claims.get("tokenVersion", Integer.class);
     }
 
     public boolean isTokenValid(String token, String email) {

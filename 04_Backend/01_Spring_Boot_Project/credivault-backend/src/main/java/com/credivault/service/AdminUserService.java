@@ -2,8 +2,10 @@ package com.credivault.service;
 
 import com.credivault.dto.AdminUserResponse;
 import com.credivault.dto.AdminUserStatusRequest;
+import com.credivault.dto.AdminUserInstitutionRequest;
 import com.credivault.entity.Institution;
 import com.credivault.entity.User;
+import com.credivault.repository.InstitutionRepository;
 import com.credivault.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
@@ -39,15 +41,18 @@ public class AdminUserService {
     private final UserRepository userRepository;
     private final UserService userService;
     private final AuditService auditService;
+    private final InstitutionRepository institutionRepository;
 
     public AdminUserService(
             UserRepository userRepository,
             UserService userService,
-            AuditService auditService) {
+            AuditService auditService,
+            InstitutionRepository institutionRepository) {
 
         this.userRepository = userRepository;
         this.userService = userService;
         this.auditService = auditService;
+        this.institutionRepository = institutionRepository;
     }
 
     // =========================================
@@ -250,6 +255,14 @@ public class AdminUserService {
 
         target.setAccountStatus(newStatus);
 
+        if ("INACTIVE".equals(newStatus)) {
+            int currentVersion =
+                    target.getTokenVersion() == null
+                            ? 0
+                            : target.getTokenVersion();
+            target.setTokenVersion(currentVersion + 1);
+        }
+
         User savedUser = userRepository.save(target);
 
         String action = "ACTIVE".equals(newStatus)
@@ -270,7 +283,68 @@ public class AdminUserService {
     }
 
     // =========================================
-    // 4. ADMINISTRATOR AUTHORIZATION
+    // 4. ASSIGN USER TO INSTITUTION
+    // =========================================
+
+    @Transactional
+    public AdminUserResponse assignInstitution(
+            Long userId,
+            AdminUserInstitutionRequest request,
+            Authentication authentication) {
+
+        User admin = getActiveAdmin(authentication.getName());
+
+        User target = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "User not found"
+                        )
+                );
+
+        if (!"ISSUER".equalsIgnoreCase(target.getRole())
+                && !"STUDENT".equalsIgnoreCase(target.getRole())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Only ISSUER or STUDENT users can be assigned to an institution"
+            );
+        }
+
+        Institution institution =
+                institutionRepository.findById(request.getInstitutionId())
+                        .orElseThrow(() ->
+                                new ResponseStatusException(
+                                        HttpStatus.NOT_FOUND,
+                                        "Institution not found"
+                                )
+                        );
+
+        if (!"ACTIVE".equalsIgnoreCase(institution.getStatus())) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Institution must be active before assigning users"
+            );
+        }
+
+        target.setInstitution(institution);
+        User savedUser = userRepository.save(target);
+
+        auditService.record(
+                admin,
+                "ASSIGN_USER_INSTITUTION",
+                "USER",
+                String.valueOf(savedUser.getUserId()),
+                "Assigned "
+                        + savedUser.getEmail()
+                        + " to institution "
+                        + institution.getInstitutionName()
+        );
+
+        return toResponse(savedUser);
+    }
+
+    // =========================================
+    // 5. ADMINISTRATOR AUTHORIZATION
     // =========================================
 
     private User getActiveAdmin(String email) {

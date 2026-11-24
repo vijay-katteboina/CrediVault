@@ -9,10 +9,10 @@
 .student-quick-actions,
 .student-stat-card,
 .student-state-card {
-  background: #ffffff;
-  border: 1px solid #e1e8f1;
+  background: var(--cv-color-surface);
+  border: 1px solid var(--cv-color-border);
   border-radius: 15px;
-  box-shadow: 0 5px 18px rgba(15, 23, 42, 0.035);
+  box-shadow: var(--cv-shadow-sm);
 }
 
 .student-welcome-panel {
@@ -29,8 +29,8 @@
   height: 58px;
   flex: 0 0 58px;
   border-radius: 15px;
-  background: #e8edff;
-  color: #3730a3;
+  background: var(--cv-color-info-surface);
+  color: var(--cv-color-primary);
   font-size: 24px;
   font-weight: 800;
 }
@@ -42,7 +42,7 @@
 
 .student-eyebrow {
   margin: 0 0 8px;
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 1.35px;
@@ -51,7 +51,7 @@
 .student-welcome-copy h2,
 .student-panel-heading h2 {
   margin: 0;
-  color: #172033;
+  color: var(--cv-color-text);
   font-size: 20px;
   font-weight: 800;
 }
@@ -59,33 +59,15 @@
 .student-welcome-copy > p:last-child {
   max-width: 680px;
   margin: 8px 0 0;
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 13px;
   line-height: 1.65;
 }
 
-.student-account-badge,
-.student-role-chip {
+.student-account-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
   flex: 0 0 auto;
-  padding: 7px 11px;
-  border-radius: 999px;
-  background: #dcfce7;
-  color: #166534;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.student-account-badge.inactive {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.student-account-badge.unknown {
-  background: #f1f5f9;
-  color: #475569;
 }
 
 .student-stat-grid {
@@ -102,14 +84,14 @@
 .student-stat-card > span,
 .student-stat-card > small {
   display: block;
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 12px;
 }
 
 .student-stat-card > strong {
   display: block;
   margin: 12px 0 7px;
-  color: #111827;
+  color: var(--cv-color-text);
   font-size: 30px;
   font-weight: 800;
 }
@@ -132,15 +114,15 @@
 }
 
 .student-role-chip {
-  background: #e8edff;
-  color: #3730a3;
+  background: var(--cv-color-info-surface);
+  color: var(--cv-color-primary);
 }
 
 .student-profile-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0 24px;
-  border-top: 1px solid #edf1f6;
+  border-top: 1px solid var(--cv-color-border);
 }
 
 .student-profile-field {
@@ -149,16 +131,16 @@
   gap: 7px;
   min-width: 0;
   padding: 16px 0;
-  border-bottom: 1px solid #edf1f6;
+  border-bottom: 1px solid var(--cv-color-border);
 }
 
 .student-profile-field span {
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 11px;
 }
 
 .student-profile-field strong {
-  color: #1e293b;
+  color: var(--cv-color-secondary);
   font-size: 13px;
   overflow-wrap: anywhere;
 }
@@ -169,10 +151,10 @@
   gap: 15px;
   width: 100%;
   padding: 17px;
-  border: 1px solid #e0e7ff;
+  border: 1px solid var(--cv-color-info-surface);
   border-radius: 12px;
-  background: #f8faff;
-  color: #172033;
+  background: var(--cv-color-surface-subtle);
+  color: var(--cv-color-text);
   text-align: left;
   cursor: pointer;
   transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
@@ -180,8 +162,8 @@
 
 .student-open-wallet-card:hover {
   transform: translateY(-1px);
-  border-color: #a5b4fc;
-  box-shadow: 0 8px 20px rgba(55, 48, 163, 0.08);
+  border-color: var(--cv-color-focus);
+  box-shadow: var(--cv-shadow-md);
 }
 
 .student-action-icon {
@@ -191,8 +173,8 @@
   height: 43px;
   flex: 0 0 43px;
   border-radius: 11px;
-  background: #e8edff;
-  color: #3730a3;
+  background: var(--cv-color-info-surface);
+  color: var(--cv-color-primary);
   font-size: 21px;
 }
 
@@ -205,28 +187,23 @@
 }
 
 .student-action-copy strong {
-  color: #1e293b;
+  color: var(--cv-color-secondary);
   font-size: 13px;
 }
 
 .student-action-copy small {
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 11px;
   line-height: 1.5;
 }
 
 .student-action-arrow {
-  color: #3730a3;
+  color: var(--cv-color-primary);
   font-size: 22px;
 }
 
 .student-inline-notice {
-  padding: 12px 15px;
-  border: 1px solid #bfdbfe;
-  border-radius: 9px;
-  background: #eff6ff;
-  color: #1e40af;
-  font-size: 12px;
+  margin: 0;
 }
 
 .student-state-card {
@@ -240,39 +217,14 @@
 
 .student-state-card p {
   margin: 0;
-  color: #64748b;
+  color: var(--cv-color-muted);
   font-size: 13px;
 }
 
 .student-error-card h2 {
   margin: 0;
-  color: #172033;
+  color: var(--cv-color-text);
   font-size: 20px;
-}
-
-.student-error-card button {
-  padding: 10px 16px;
-  border: 0;
-  border-radius: 8px;
-  background: #111827;
-  color: #ffffff;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.student-loading-spinner {
-  width: 30px;
-  height: 30px;
-  border: 3px solid #e2e8f0;
-  border-top-color: #3730a3;
-  border-radius: 50%;
-  animation: student-spin 0.8s linear infinite;
-}
-
-@keyframes student-spin {
-  to { transform: rotate(360deg); }
 }
 
 @media (max-width: 760px) {
