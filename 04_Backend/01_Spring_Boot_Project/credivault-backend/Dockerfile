@@ -4,9 +4,10 @@ FROM maven:3.10.2-eclipse-temurin-25-noble AS build
 WORKDIR /app
 
 COPY pom.xml .
+COPY settings.xml .
 COPY src ./src
 
-RUN mvn -B -DskipTests package
+RUN mvn -s settings.xml -B -DskipTests package
 
 # Stage 2: Run application
 FROM eclipse-temurin:25-jre-noble
