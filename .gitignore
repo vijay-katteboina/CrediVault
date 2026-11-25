@@ -73,3 +73,6 @@ postman/
 node_modules/
 target/
 dist/
+
+# PostgreSQL backup files
+credivault_backup_*.backup

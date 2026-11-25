@@ -1,0 +1,36 @@
+﻿# Git and IDE
+.git
+.idea/
+.vscode/
+
+# Maven build output
+target/
+
+# Environment files and secrets
+.env
+.env.*
+*.pem
+*.key
+*.p12
+issuer-*-key.txt
+
+# Local storage and uploaded files
+credivault-storage/
+
+# Local backups
+*.backup
+*.dump
+*.sql
+
+# Local testing and diagnostic files
+*-login.json
+*-register.json
+*-credential.json
+credential.json
+verification.json
+startup-error.txt
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
