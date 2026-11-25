@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { API_BASE_URL } from '../../services/api'
 import {
   Alert,
   Button,
@@ -47,7 +48,7 @@ function ResetPasswordPage() {
       setLoading(true)
 
       const response = await fetch(
-        'http://localhost:8080/api/v1/auth/reset-password',
+        `${API_BASE_URL}/auth/reset-password`,
         {
           method: 'POST',
           headers: {

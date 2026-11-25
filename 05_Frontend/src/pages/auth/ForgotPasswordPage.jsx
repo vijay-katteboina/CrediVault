@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { API_BASE_URL } from '../../services/api'
 import {
   Alert,
   Button,
@@ -24,7 +25,7 @@ function ForgotPasswordPage() {
 
     try {
       const response = await fetch(
-        'http://localhost:8080/api/v1/auth/forgot-password',
+        `${API_BASE_URL}/auth/forgot-password`,
         {
           method: 'POST',
           headers: {
