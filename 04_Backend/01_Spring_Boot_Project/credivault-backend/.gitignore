@@ -44,3 +44,8 @@ revoke-*.json
 
 # Local configuration backups
 *.backup
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
