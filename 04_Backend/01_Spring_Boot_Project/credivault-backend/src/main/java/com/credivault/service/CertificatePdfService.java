@@ -156,6 +156,24 @@ public class CertificatePdfService {
         // Verify SHA-256 integrity.
         String calculatedHash =
                 hashService.sha256(canonicalData);
+                System.out.println(
+        "[CREDIVAULT HASH DIAGNOSTIC] "
+                + "credentialId=" + credential.getCredentialId()
+                + ", calculatedHash=" + calculatedHash
+                + ", storedHash=" + credential.getDataHash()
+                + ", valueTypes="
+                + credential.getCredentialData()
+                        .entrySet()
+                        .stream()
+                        .map(entry ->
+                                entry.getKey() + ":"
+                                        + (entry.getValue() == null
+                                        ? "null"
+                                        : entry.getValue().getClass().getName())
+                        )
+                        .sorted()
+                        .toList()
+);
 
         if (!Objects.equals(
                 calculatedHash,
